@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CanGo - Choose German Level</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "secondary-fixed": "#d3e4fe",
+                  "surface-container-high": "#e2e7ff",
+                  "on-surface": "#131b2e",
+                  "on-primary-fixed": "#111c2d",
+                  "on-error-container": "#93000a",
+                  "error": "#ba1a1a",
+                  "inverse-on-surface": "#eef0ff",
+                  "on-background": "#131b2e",
+                  "error-container": "#ffdad6",
+                  "surface-dim": "#d2d9f4",
+                  "on-secondary-fixed": "#0b1c30",
+                  "outline-variant": "#c5c6cd",
+                  "secondary": "#505f76",
+                  "on-secondary": "#ffffff",
+                  "primary-fixed": "#d8e3fb",
+                  "surface-container-highest": "#dae2fd",
+                  "on-surface-variant": "#45474c",
+                  "outline": "#75777d",
+                  "surface-bright": "#faf8ff",
+                  "surface": "#faf8ff",
+                  "secondary-container": "#d0e1fb",
+                  "on-secondary-container": "#54647a",
+                  "inverse-surface": "#283044",
+                  "on-tertiary-fixed-variant": "#444749",
+                  "on-tertiary": "#ffffff",
+                  "tertiary": "#111516",
+                  "background": "#faf8ff",
+                  "primary": "#091426",
+                  "on-primary-container": "#8590a6",
+                  "on-primary": "#ffffff",
+                  "tertiary-container": "#26292b",
+                  "on-error": "#ffffff",
+                  "on-tertiary-container": "#8d9092",
+                  "tertiary-fixed": "#e0e3e5",
+                  "surface-container-low": "#f2f3ff",
+                  "surface-tint": "#545f73",
+                  "surface-container": "#eaedff",
+                  "primary-fixed-dim": "#bcc7de",
+                  "primary-container": "#1e293b",
+                  "on-primary-fixed-variant": "#3c475a",
+                  "on-tertiary-fixed": "#191c1e",
+                  "inverse-primary": "#bcc7de",
+                  "surface-variant": "#dae2fd",
+                  "tertiary-fixed-dim": "#c4c7c9",
+                  "secondary-fixed-dim": "#b7c8e1",
+                  "on-secondary-fixed-variant": "#38485d",
+                  "surface-container-lowest": "#ffffff",
+                  "on-background": "#131b2e"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.125rem",
+                  "lg": "0.25rem",
+                  "xl": "0.5rem",
+                  "full": "0.75rem"
+          },
+          "spacing": {
+                  "margin-mobile": "16px",
+                  "margin-desktop": "64px",
+                  "gutter": "24px",
+                  "unit": "4px",
+                  "max-width": "1280px"
+          },
+          "fontFamily": {
+                  "headline-md": ["Manrope"],
+                  "body-md": ["Inter"],
+                  "body-lg": ["Inter"],
+                  "display-lg-mobile": ["Manrope"],
+                  "display-lg": ["Manrope"],
+                  "label-sm": ["JetBrains Mono"]
+          },
+          "fontSize": {
+                  "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                  "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                  "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                  "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .level-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .level-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(19, 27, 46, 0.08);
+    }
+    .level-card.active {
+      border-color: #091426;
+      background-color: #f2f3ff;
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar Section -->
+<header class="bg-surface flex justify-between items-center w-full px-margin-mobile md:px-margin-desktop max-w-max-width mx-auto h-16 sticky top-0 z-50">
+<div class="flex items-center">
+<img alt="CanGo Brand Mark" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD31-UOXecPfsRAm-JvoqlnA9iZ7Hk97Fryse3mkkZKKAiKuiNEOiCbEr12Iqf1vdiW36l9Mw2Llvee2oy349RXhTGY21GBoZiQbDQCwmPkjVWcjESa0U7lY_8iqi0-i0IJUVd6SRK58yPV3RTTyew6agSTQV77zsfKzWqAKTGtqYzwwdy6-ys1-OX4nvxXm32tvuFZ6YZ6zvxLXMvQb1ZxEGsWjSeSihAa-ZivfzMevw0Es-ai8VnLDP51O8uPyWBxF53_rS1i3w"/>
+</div>
+<div class="flex items-center">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined">person</span>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow flex flex-col items-center justify-center px-margin-mobile py-12">
+<div class="max-w-[600px] w-full space-y-12">
+<!-- Title Section -->
+<div class="text-center space-y-4">
+<h1 class="font-display-lg text-display-lg-mobile md:text-display-lg text-on-surface">Choose your German Level</h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-md mx-auto">Select the proficiency that best describes your current language skills to personalize your experience.</p>
+</div>
+<!-- Level Selection Grid -->
+<div class="space-y-4">
+<!-- A2 Card -->
+<button class="level-card w-full text-left p-6 bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center justify-between group active:scale-[0.98]" onclick="selectLevel(this, 'A2')">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center font-headline-md text-primary font-bold">A2</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface">Pre-Intermediate</h3>
+<p class="font-body-md text-sm text-on-surface-variant">Can understand sentences and frequently used expressions.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<!-- B1 Card -->
+<button class="level-card w-full text-left p-6 bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center justify-between group active:scale-[0.98]" onclick="selectLevel(this, 'B1')">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center font-headline-md text-primary font-bold">B1</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface">Intermediate</h3>
+<p class="font-body-md text-sm text-on-surface-variant">Can deal with most situations likely to arise while travelling.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+<!-- B2 Card -->
+<button class="level-card w-full text-left p-6 bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center justify-between group active:scale-[0.98]" onclick="selectLevel(this, 'B2')">
+<div class="flex items-center gap-6">
+<div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center font-headline-md text-primary font-bold">B2</div>
+<div>
+<h3 class="font-headline-md text-[18px] text-on-surface">Upper Intermediate</h3>
+<p class="font-body-md text-sm text-on-surface-variant">Can interact with a degree of fluency and spontaneity.</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-primary transition-colors">chevron_right</span>
+</button>
+</div>
+<!-- CTA & Footer Section -->
+<div class="flex flex-col items-center gap-6 pt-4">
+<button class="w-full md:w-auto px-12 py-4 bg-primary text-on-primary rounded-full font-headline-md text-base hover:opacity-90 transition-all active:scale-95 shadow-lg shadow-primary/10" disabled="" id="continue-btn">
+          Continue
+        </button>
+<button class="text-on-surface-variant font-body-md text-sm hover:text-primary transition-colors flex items-center gap-1">
+          Not sure? Take an assessment later.
+          <span class="material-symbols-outlined text-[16px]">open_in_new</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Illustration Decorative Element (Ambient) -->
+<div class="fixed bottom-0 right-0 -z-10 opacity-10 pointer-events-none hidden lg:block">
+<div class="w-[600px] h-[600px] bg-gradient-to-tl from-primary/30 to-transparent blur-[120px] rounded-full"></div>
+</div>
+<script>
+    let selectedLevel = null;
+
+    function selectLevel(element, level) {
+      // Remove active class from all cards
+      document.querySelectorAll('.level-card').forEach(card => {
+        card.classList.remove('active', 'border-primary', 'bg-surface-container-low');
+        card.classList.add('border-outline-variant', 'bg-surface-container-lowest');
+      });
+      
+      // Add active class to selected card
+      element.classList.remove('border-outline-variant', 'bg-surface-container-lowest');
+      element.classList.add('active', 'border-primary', 'bg-surface-container-low');
+      
+      // Enable continue button
+      selectedLevel = level;
+      const continueBtn = document.getElementById('continue-btn');
+      continueBtn.disabled = false;
+      
+      // Feedback effect
+      element.style.transform = 'scale(0.98)';
+      setTimeout(() => {
+        element.style.transform = 'translateY(-4px)';
+      }, 100);
+    }
+  </script>
+</body></html>

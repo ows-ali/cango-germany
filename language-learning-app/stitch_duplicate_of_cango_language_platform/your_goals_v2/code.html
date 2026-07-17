@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CanGo - Learning Goals</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-fixed": "#d3e4fe",
+                    "surface-container-high": "#e2e7ff",
+                    "on-surface": "#131b2e",
+                    "on-primary-fixed": "#111c2d",
+                    "on-error-container": "#93000a",
+                    "error": "#ba1a1a",
+                    "inverse-on-surface": "#eef0ff",
+                    "on-background": "#131b2e",
+                    "error-container": "#ffdad6",
+                    "surface-dim": "#d2d9f4",
+                    "on-secondary-fixed": "#0b1c30",
+                    "outline-variant": "#c5c6cd",
+                    "secondary": "#505f76",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#d8e3fb",
+                    "surface-container-highest": "#dae2fd",
+                    "on-surface-variant": "#45474c",
+                    "outline": "#75777d",
+                    "surface-bright": "#faf8ff",
+                    "surface": "#faf8ff",
+                    "secondary-container": "#d0e1fb",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "surface-container-lowest": "#ffffff",
+                    "primary": "#091426",
+                    "on-primary-container": "#8590a6",
+                    "on-primary": "#ffffff",
+                    "tertiary-container": "#26292b",
+                    "tertiary-fixed-dim": "#c4c7c9",
+                    "tertiary": "#111516",
+                    "on-error": "#ffffff",
+                    "background": "#faf8ff",
+                    "on-tertiary-container": "#8d9092",
+                    "tertiary-fixed": "#e0e3e5",
+                    "surface-container-low": "#f2f3ff",
+                    "surface-tint": "#545f73",
+                    "surface-container": "#eaedff",
+                    "primary-fixed-dim": "#bcc7de",
+                    "primary-container": "#1e293b",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "on-tertiary-fixed": "#191c1e",
+                    "inverse-primary": "#bcc7de",
+                    "surface-variant": "#dae2fd",
+                    "on-secondary-container": "#54647a",
+                    "inverse-surface": "#283044",
+                    "on-tertiary-fixed-variant": "#444749",
+                    "on-tertiary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "margin-desktop": "64px",
+                    "gutter": "24px",
+                    "unit": "4px",
+                    "max-width": "1280px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "display-lg-mobile": ["Manrope"],
+                    "display-lg": ["Manrope"],
+                    "label-sm": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #faf8ff;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .goal-card-active {
+            border-color: #091426;
+            background-color: #f2f3ff;
+            box-shadow: 0 0 0 2px #091426;
+        }
+        .goal-card-active .icon-container {
+            color: #091426;
+        }
+        .goal-card-active .check-icon {
+            display: flex !important;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col items-center overflow-x-hidden">
+<!-- Top Navigation Area -->
+<header class="w-full max-w-[1280px] flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 h-16">
+<div class="flex items-center">
+<img alt="CanGo Logo" class="h-8 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD31-UOXecPfsRAm-JvoqlnA9iZ7Hk97Fryse3mkkZKKAiKuiNEOiCbEr12Iqf1vdiW36l9Mw2Llvee2oy349RXhTGY21GBoZiQbDQCwmPkjVWcjESa0U7lY_8iqi0-i0IJUVd6SRK58yPV3RTTyew6agSTQV77zsfKzWqAKTGtqYzwwdy6-ys1-OX4nvxXm32tvuFZ6YZ6zvxLXMvQb1ZxEGsWjSeSihAa-ZivfzMevw0Es-ai8VnLDP51O8uPyWBxF53_rS1i3w"/>
+</div>
+<button class="text-on-surface-variant hover:text-primary transition-colors font-medium text-sm">
+            Skip
+        </button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow w-full max-w-[640px] px-margin-mobile md:px-margin-desktop py-12 flex flex-col">
+<!-- Header Section -->
+<div class="mb-12">
+<div class="w-12 h-1 bg-surface-container rounded-full mb-6">
+<div class="w-3/4 h-full bg-primary rounded-full transition-all duration-500"></div>
+</div>
+<h1 class="font-headline-md text-headline-md text-on-surface mb-2">
+                What are your goals in Germany?
+            </h1>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Select all that apply to personalize your learning journey.
+            </p>
+</div>
+<!-- Goals Selection Grid -->
+<div class="grid grid-cols-1 gap-4 select-none" id="goals-container">
+<!-- Goal Item: Study -->
+<div class="goal-card group relative flex items-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl cursor-pointer hover:border-primary transition-all duration-200 active:scale-[0.98] goal-card-active" onclick="toggleGoal(this)">
+<div class="icon-container flex items-center justify-center w-12 h-12 rounded-lg bg-surface-container text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">school</span>
+</div>
+<div class="ml-4 flex-grow">
+<span class="font-body-lg text-body-lg text-on-surface block">Study</span>
+</div>
+<div class="check-icon flex absolute right-6 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Goal Item: Work -->
+<div class="goal-card group relative flex items-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl cursor-pointer hover:border-primary transition-all duration-200 active:scale-[0.98] goal-card-active" onclick="toggleGoal(this)">
+<div class="icon-container flex items-center justify-center w-12 h-12 rounded-lg bg-surface-container text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">work</span>
+</div>
+<div class="ml-4 flex-grow">
+<span class="font-body-lg text-body-lg text-on-surface block">Work</span>
+</div>
+<div class="check-icon flex absolute right-6 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Goal Item: Daily Life -->
+<div class="goal-card group relative flex items-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl cursor-pointer hover:border-primary transition-all duration-200 active:scale-[0.98] goal-card-active" onclick="toggleGoal(this)">
+<div class="icon-container flex items-center justify-center w-12 h-12 rounded-lg bg-surface-container text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">shopping_cart</span>
+</div>
+<div class="ml-4 flex-grow">
+<span class="font-body-lg text-body-lg text-on-surface block">Daily Life</span>
+</div>
+<div class="check-icon flex absolute right-6 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Goal Item: Making Friends -->
+<div class="goal-card group relative flex items-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl cursor-pointer hover:border-primary transition-all duration-200 active:scale-[0.98] goal-card-active" onclick="toggleGoal(this)">
+<div class="icon-container flex items-center justify-center w-12 h-12 rounded-lg bg-surface-container text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">groups</span>
+</div>
+<div class="ml-4 flex-grow">
+<span class="font-body-lg text-body-lg text-on-surface block">Making Friends</span>
+</div>
+<div class="check-icon flex absolute right-6 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<!-- Goal Item: Travel -->
+<div class="goal-card group relative flex items-center p-6 bg-surface-container-lowest border border-outline-variant rounded-xl cursor-pointer hover:border-primary transition-all duration-200 active:scale-[0.98] goal-card-active" onclick="toggleGoal(this)">
+<div class="icon-container flex items-center justify-center w-12 h-12 rounded-lg bg-surface-container text-on-surface-variant group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-3xl">train</span>
+</div>
+<div class="ml-4 flex-grow">
+<span class="font-body-lg text-body-lg text-on-surface block">Travel</span>
+</div>
+<div class="check-icon flex absolute right-6 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+<!-- Footer Action Area -->
+<div class="mt-auto pt-12 sticky bottom-0 bg-background/80 backdrop-blur-md pb-8">
+<button class="w-full h-14 bg-primary text-on-primary font-semibold text-base rounded-xl shadow-lg hover:bg-primary-container transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center gap-2 group" id="continue-btn">
+                Continue
+                <span class="material-symbols-outlined text-lg group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+<p class="text-center mt-4 text-on-surface-variant font-label-sm text-label-sm">
+                You can change these settings later in your profile.
+            </p>
+</div>
+</main>
+<!-- Interactive Layer -->
+<script>
+        // Initial state: all selected as per defaults in HTML
+        const selectedGoals = new Set(['Study', 'Work', 'Daily Life', 'Making Friends', 'Travel']);
+        const continueBtn = document.getElementById('continue-btn');
+
+        function toggleGoal(element) {
+            const label = element.querySelector('.text-on-surface').innerText;
+            const checkIcon = element.querySelector('.check-icon');
+            
+            if (selectedGoals.has(label)) {
+                selectedGoals.delete(label);
+                element.classList.remove('goal-card-active');
+                checkIcon.classList.add('hidden');
+                checkIcon.classList.remove('flex');
+            } else {
+                selectedGoals.add(label);
+                element.classList.add('goal-card-active');
+                checkIcon.classList.remove('hidden');
+                checkIcon.classList.add('flex');
+            }
+
+            // Update Continue Button State
+            if (selectedGoals.size > 0) {
+                continueBtn.removeAttribute('disabled');
+                continueBtn.classList.remove('opacity-30');
+            } else {
+                continueBtn.setAttribute('disabled', 'true');
+                continueBtn.classList.add('opacity-30');
+            }
+
+            if (window.navigator && window.navigator.vibrate) {
+                window.navigator.vibrate(5);
+            }
+        }
+
+        // Simple enter animation for list items
+        document.querySelectorAll('#goals-container > div').forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(10px)';
+            setTimeout(() => {
+                el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    </script>
+</body></html>

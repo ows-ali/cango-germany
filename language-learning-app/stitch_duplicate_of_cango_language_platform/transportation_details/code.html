@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CanGo - Scenario Detail</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;family=Inter:wght@400;500;700&amp;family=Jetbrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"surface-variant": "#dae2fd", "error-container": "#ffdad6", "surface-container": "#eaedff", "surface-tint": "#545f73", "on-surface": "#131b2e", "secondary-fixed": "#d3e4fe", "on-primary-fixed-variant": "#3c475a", "outline-variant": "#c5c6cd", "secondary-container": "#d0e1fb", "surface-dim": "#d2d9f4", "on-tertiary": "#ffffff", "primary-fixed": "#d8e3fb", "on-primary-fixed": "#111c2d", "on-primary": "#ffffff", "surface-bright": "#faf8ff", "surface-container-highest": "#dae2fd", "on-secondary": "#ffffff", surface: "#faf8ff", "inverse-primary": "#bcc7de", "secondary-fixed-dim": "#b7c8e1", "primary-container": "#1e293b", secondary: "#505f76", "tertiary-container": "#26292b", error: "#ba1a1a", "inverse-surface": "#283044", "surface-container-low": "#f2f3ff", "on-secondary-container": "#54647a", "surface-container-high": "#e2e7ff", "on-error-container": "#93000a", tertiary: "#111516", "on-tertiary-fixed-variant": "#444749", outline: "#75777d", "on-surface-variant": "#45474c", "primary-fixed-dim": "#bcc7de", "on-primary-container": "#8590a6", "inverse-on-surface": "#eef0ff", "tertiary-fixed": "#e0e3e5", "on-secondary-fixed": "#0b1c30", "tertiary-fixed-dim": "#c4c7c9", "on-tertiary-container": "#8d9092", "on-error": "#ffffff", "on-tertiary-fixed": "#191c1e", primary: "#091426", background: "#faf8ff", "on-secondary-fixed-variant": "#38485d", "surface-container-lowest": "#ffffff", "on-background": "#131b2e"}, borderRadius: {DEFAULT: "0.125rem", lg: "0.25rem", xl: "0.5rem", full: "0.75rem"}, spacing: {gutter: "24px", "margin-mobile": "16px", "margin-desktop": "64px", "container-max": "1200px", "unit-lg": "24px", "unit-xs": "4px", "unit-md": "16px", "unit-sm": "8px", "unit-xl": "48px", "max-width": "1280px", unit: "4px"}, fontFamily: {"body-md": ["Inter"], "label-md": ["Inter"], "display-lg": ["Manrope"], "headline-lg": ["Inter"], "label-sm": ["JetBrains Mono"], "body-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "headline-md": ["Manrope"], "display-lg-mobile": ["Manrope"]}, fontSize: {"body-md": ["16px", {lineHeight: "24px", fontWeight: "400"}], "label-md": ["14px", {lineHeight: "1.4", letterSpacing: "0.01em", fontWeight: "500"}], "display-lg": ["48px", {lineHeight: "56px", letterSpacing: "-0.02em", fontWeight: "700"}], "headline-lg": ["32px", {lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "600"}], "label-sm": ["12px", {lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "500"}], "body-lg": ["18px", {lineHeight: "28px", fontWeight: "400"}], "headline-lg-mobile": ["24px", {lineHeight: "1.2", fontWeight: "600"}], "headline-md": ["24px", {lineHeight: "32px", fontWeight: "600"}], "display-lg-mobile": ["32px", {lineHeight: "40px", letterSpacing: "-0.02em", fontWeight: "700"}]}}}};</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen">
+<!-- Navigation Shell (NavigationDrawer for Desktop) -->
+<aside class="hidden md:flex flex-col h-screen w-64 fixed left-0 top-0 bg-surface border-r border-outline-variant p-unit-lg space-y-unit-sm z-40">
+<div class="font-headline-md text-headline-md font-semibold text-primary mb-unit-xl">CanGo</div>
+<div class="flex items-center gap-unit-md mb-unit-xl">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A professional profile headshot of a young adult with a friendly expression, set against a soft, out-of-focus urban background. The lighting is natural and bright, following a clean, light-mode aesthetic with high clarity and professional polish. The color palette features neutral tones with subtle teal accents in the clothing." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtzP6hgcBQPavmCTJ5gDRsDQIoIdxvgp0SmyLNpVINHyGsnSe9L-pEZIFfK_9DAJ7wovPKfI3UgRaPgTEeOZ2hrHJ4h-JMc0T-OZCDGptN0PAieIRkQ_cOkmL6dfIuN0A8Po3D2zahGhkFe9C4yah25LLzgePb1Dlj6RA6HOgCChXTjIs_15B0Ut-tqJ4IisthTby5_71N3ekufjvKB4FeJduXZuz1WTVeG4CkFLBAkmR--8s_i5iZ9SbA_Yo9_0apDxLiTBoVUQ"/>
+</div>
+<div>
+<p class="font-label-md text-label-md font-semibold text-on-surface">Alex Miller</p>
+<p class="text-xs text-on-surface-variant">B2 Upper Intermediate</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-unit-md bg-secondary-container text-on-secondary-container rounded-lg px-unit-md py-unit-sm font-semibold transition-transform duration-200 active:translate-x-1" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-unit-md text-on-surface-variant hover:bg-surface-container-high px-unit-md py-unit-sm rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-md text-label-md">Vocabulary</span>
+</a>
+<a class="flex items-center gap-unit-md text-on-surface-variant hover:bg-surface-container-high px-unit-md py-unit-sm rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-md text-label-md">Progress</span>
+</a>
+<a class="flex items-center gap-unit-md text-on-surface-variant hover:bg-surface-container-high px-unit-md py-unit-sm rounded-lg transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Account</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:ml-64 pb-24 md:pb-0">
+<!-- Header Section with Hero Image -->
+<header class="relative h-64 md:h-80 w-full overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpdY7Yd1xSn78PM_64O0xp_tbhR7qgrGCLzePDoFXHcOHN8gRhvFUJ6J04UxwWVe4vgtGoxBwxZp5mufzHdOya70-F_2fNZZobCzgh3riKb1om2iTMXGbSp9Cg0H1627rLEbI_p3XLAdW_sq3KAWSGPNM8l7lKOggZ7c8NLdfP3tT1_Cs0veUcIv00jbYBwsrJj2W_l96E6l2y2fZLdMFZtxHoRT6No0KtnuTcxlaPHXngXnuXcD6J9ejvVA2_8Obygbt2Ktk9rg"/>
+<!-- Overlay Gradient -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+<!-- Floating Controls -->
+<div class="absolute inset-0 flex flex-col justify-between p-margin-mobile md:p-margin-desktop">
+<div class="flex justify-between items-center">
+<button class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition-colors active:scale-95 duration-200">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 flex items-center gap-2 border border-white/20 text-white cursor-pointer hover:bg-white/20 transition-colors">
+<span class="font-label-sm text-label-sm">B1 Intermediate</span>
+<span class="material-symbols-outlined text-[18px]">expand_more</span>
+</div>
+</div>
+<div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-white mb-2">Transportation</h1>
+<div class="flex items-center gap-3">
+<div class="flex-1 max-w-xs h-1.5 bg-white/20 rounded-full overflow-hidden">
+<div class="w-1/3 h-full bg-primary-fixed"></div>
+</div>
+<span class="font-label-sm text-label-sm text-white/90">4/12 Modules Completed</span>
+</div>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-unit-lg">
+<div class="space-y-4">
+<!-- Module 1: Expanded -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-[0_4px_12px_rgba(15,23,42,0.03)]">
+<button class="w-full flex items-center justify-between p-unit-lg text-left" onclick="toggleAccordion(this)">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined">train</span>
+</div>
+<div>
+<h3 class="font-body-lg text-body-lg font-semibold">At the Platform</h3>
+<p class="text-sm text-on-surface-variant">3 Experiences • 33% Complete</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform duration-300 transform rotate-180">expand_more</span>
+</button>
+<div class="px-unit-lg pb-unit-lg space-y-3">
+<!-- Experience: Done -->
+<div class="flex items-center justify-between p-unit-md bg-surface-container-low rounded-lg border border-outline-variant/30">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary font-bold">check_circle</span>
+<span class="font-label-md text-label-md text-on-surface">Buying a Ticket</span>
+</div>
+<span class="text-xs font-semibold text-primary px-2 py-1 bg-primary-fixed/30 rounded">COMPLETED</span>
+</div>
+<!-- Experience: Active -->
+<div class="flex items-center justify-between p-unit-md bg-white rounded-lg border-2 border-primary shadow-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary animate-pulse">play_circle</span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Checking the Schedule</span>
+</div>
+<button class="bg-primary text-white text-xs px-4 py-1.5 rounded-full font-bold hover:bg-primary-container transition-colors">RESUME</button>
+</div>
+<!-- Experience: Locked -->
+<div class="flex items-center justify-between p-unit-md bg-white rounded-lg border border-outline-variant shadow-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">play_circle</span>
+<span class="font-label-md text-label-md text-on-surface">Finding your Seat</span>
+</div>
+<button class="bg-primary text-white text-xs px-4 py-1.5 rounded-full font-bold hover:bg-primary-container transition-colors">START</button>
+</div>
+</div>
+</div>
+<!-- Module 2: Collapsed -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-[0_4px_12px_rgba(15,23,42,0.03)]">
+<button class="w-full flex items-center justify-between p-unit-lg text-left" onclick="toggleAccordion(this)">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined">directions_transit</span>
+</div>
+<div>
+<h3 class="font-body-lg text-body-lg font-semibold">On the Train</h3>
+<p class="text-sm text-on-surface-variant">4 Experiences</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform duration-300">expand_more</span>
+</button>
+<div class="px-unit-lg pb-unit-lg hidden">
+<!-- Accordion content (Hidden initially) -->
+</div>
+</div>
+<!-- Module 3: Collapsed -->
+<div class="bg-surface-container-lowest rounded-xl border border-outline-variant overflow-hidden shadow-[0_4px_12px_rgba(15,23,42,0.03)]">
+<button class="w-full flex items-center justify-between p-unit-lg text-left" onclick="toggleAccordion(this)">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-surface-container text-on-surface-variant flex items-center justify-center">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<h3 class="font-body-lg text-body-lg font-semibold">Handling Delays</h3>
+<p class="text-sm text-on-surface-variant">5 Experiences</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform duration-300">expand_more</span>
+</button>
+<div class="px-unit-lg pb-unit-lg hidden">
+<!-- Accordion content (Hidden initially) -->
+</div>
+</div>
+</div>
+</section>
+<!-- Stats Quick Glance (Asymmetric / Bento Style) -->
+<section class="max-w-container-max mx-auto px-margin-mobile md:px-margin-desktop py-unit-xl grid grid-cols-1 md:grid-cols-3 gap-4">
+</section>
+</main>
+<!-- Mobile Bottom Navigation Shell -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-unit-sm px-gutter bg-surface-container-lowest shadow-[0_-4px_12px_rgba(15,23,42,0.03)] z-50 md:hidden">
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-xl px-3 py-1 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-variant transition-colors active:scale-95">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-sm text-label-sm">Vocab</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-variant transition-colors active:scale-95">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1 hover:bg-surface-variant transition-colors active:scale-95">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+<script>
+        function toggleAccordion(button) {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('.material-symbols-outlined:last-child');
+            
+            const isExpanded = !content.classList.contains('hidden');
+            
+            // Toggle visibility
+            content.classList.toggle('hidden');
+            
+            // Rotate icon
+            if (isExpanded) {
+                icon.classList.remove('rotate-180');
+            } else {
+                icon.classList.add('rotate-180');
+            }
+        }
+
+        // Active state determination for Nav
+        // Since we are on a "Scenario Detail" (under a Dashboard/Home context), the Home icon is active.
+    </script>
+</body></html>

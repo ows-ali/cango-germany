@@ -1,0 +1,290 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary-container": "#007f9d",
+                        "on-background": "#171c1e",
+                        "tertiary": "#4d5d73",
+                        "on-primary": "#ffffff",
+                        "surface-container-highest": "#dfe3e6",
+                        "on-secondary-fixed": "#131b2e",
+                        "primary": "#00647c",
+                        "secondary": "#565e74",
+                        "tertiary-fixed-dim": "#b7c8e1",
+                        "secondary-fixed": "#dae2fd",
+                        "tertiary-container": "#66768d",
+                        "surface": "#f6fafd",
+                        "secondary-container": "#dae2fd",
+                        "on-surface": "#171c1e",
+                        "primary-fixed": "#b7eaff",
+                        "surface-container-low": "#f0f4f7",
+                        "on-tertiary-fixed": "#0b1c30",
+                        "inverse-surface": "#2c3133",
+                        "on-primary-container": "#fafdff",
+                        "surface-container-lowest": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "surface-container-high": "#e5e9eb",
+                        "outline-variant": "#bdc8ce",
+                        "on-secondary-container": "#5c647a",
+                        "background": "#f6fafd",
+                        "surface-tint": "#006780",
+                        "outline": "#6e797e",
+                        "on-secondary": "#ffffff",
+                        "on-surface-variant": "#3e484d",
+                        "on-primary-fixed": "#001f28",
+                        "on-primary-fixed-variant": "#004e61",
+                        "on-error": "#ffffff",
+                        "tertiary-fixed": "#d3e4fe",
+                        "error": "#ba1a1a",
+                        "surface-dim": "#d6dbdd",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed-variant": "#3f465c",
+                        "surface-bright": "#f6fafd",
+                        "on-tertiary-container": "#fdfcff",
+                        "on-error-container": "#93000a",
+                        "inverse-primary": "#6cd3f7",
+                        "inverse-on-surface": "#edf1f4",
+                        "surface-variant": "#dfe3e6",
+                        "surface-container": "#eaeef1",
+                        "secondary-fixed-dim": "#bec6e0",
+                        "on-tertiary-fixed-variant": "#38485d",
+                        "primary-fixed-dim": "#6cd3f7"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "unit-lg": "24px",
+                        "margin-desktop": "40px",
+                        "container-max": "1200px",
+                        "unit-md": "16px",
+                        "gutter": "24px",
+                        "unit-xl": "48px",
+                        "unit-xs": "4px",
+                        "unit-sm": "8px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Inter"],
+                        "display-lg": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-lg": ["Inter"],
+                        "headline-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "headline-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "label-sm": ["12px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "1.4", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    }catch(_e){}</script></head><body class="min-h-screen flex flex-col">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 bg-surface/80 backdrop-blur-md px-margin-mobile md:px-margin-desktop h-16 flex items-center justify-between border-b border-outline-variant/10">
+        <div class="flex items-center gap-unit-md">
+            <button aria-label="Close Player" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors">
+                <span class="material-symbols-outlined text-on-surface">close</span>
+            </button>
+            <div class="flex items-center gap-3">
+                <!-- Transparent Textless Logo -->
+                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="">
+                    <rect x="6" y="6" width="20" height="20" rx="2" stroke="#00647c" stroke-width="3"></rect>
+                    <path d="M16 6V26" stroke="#00647c" stroke-width="3"></path>
+                </svg>
+                <div class="flex flex-col">
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">Experience 8</span>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex items-center gap-1.5 bg-surface-container-low px-3 py-1.5 rounded-full border border-outline-variant/30">
+                <span class="material-symbols-outlined text-orange-600 fire-streak" style="font-variation-settings: &quot;FILL&quot; 1;">local_fire_department</span>
+                <span class="font-label-sm text-label-sm text-on-surface">500 XP</span>
+            </div>
+            <button class="material-symbols-outlined text-on-surface-variant p-2 hover:bg-surface-variant rounded-full">more_vert</button>
+        </div>
+    </header>
+
+    <main class="flex-grow flex flex-col max-w-container-max mx-auto w-full gap-unit-xl px-margin-mobile md:px-margin-desktop py-unit-lg pb-32">
+        <!-- Hero & Player Section -->
+        <section class="w-full space-y-unit-lg">
+            <!-- Hero Image -->
+            <div class="relative w-full aspect-video md:aspect-[21/9] rounded-2xl overflow-hidden shadow-2xl group">
+                <img alt="German ICE train at platform" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpdY7Yd1xSn78PM_64O0xp_tbhR7qgrGCLzePDoFXHcOHN8gRhvFUJ6J04UxwWVe4vgtGoxBwxZp5mufzHdOya70-F_2fNZZobCzgh3riKb1om2iTMXGbSp9Cg0H1627rLEbI_p3XLAdW_sq3KAWSGPNM8l7lKOggZ7c8NLdfP3tT1_Cs0veUcIv00jbYBwsrJj2W_l96E6l2y2fZLdMFZtxHoRT6No0KtnuTcxlaPHXngXnuXcD6J9ejvVA2_8Obygbt2Ktk9rg">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                <button class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-transform" id="main-play-btn">
+                    <span class="material-symbols-outlined text-4xl" style="font-variation-settings: &quot;FILL&quot; 1;">play_arrow</span>
+                </button>
+            </div>
+
+            <!-- Player Controls -->
+            <div class="bg-surface-container-lowest rounded-2xl p-unit-lg shadow-sm border border-outline-variant/30">
+                <div class="flex items-end justify-between h-16 gap-1 mb-unit-md px-2" id="waveform"></div>
+                <div class="flex items-center justify-between">
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">1:42</span>
+                    <div class="flex items-center gap-unit-lg">
+                        <button class="material-symbols-outlined text-on-surface-variant hover:text-primary">replay_10</button>
+                        <button class="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center hover:opacity-90 active:scale-95 transition-all">
+                            <span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">pause</span>
+                        </button>
+                        <button class="material-symbols-outlined text-on-surface-variant hover:text-primary">forward_30</button>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant">3:50</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Learning Flow Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-unit-xl">
+            
+            <!-- Transcript Column -->
+            <section class="lg:col-span-7 space-y-unit-xl">
+                <div class="bg-surface-container-lowest rounded-2xl p-unit-lg shadow-sm border border-outline-variant/30">
+                    <div class="flex items-center justify-between mb-unit-lg">
+                        <h3 class="font-headline-md text-headline-md text-on-surface font-semibold">Transcript</h3>
+                        <button id="toggle-all-english" class="text-primary font-label-md hover:underline flex items-center gap-1">
+                            <span class="material-symbols-outlined text-[18px]">translate</span> Show Translations
+                        </button>
+                    </div>
+                    <div class="space-y-6">
+                        <div class="transcript-line p-3 rounded-lg group">
+                            <p class="font-body-lg text-on-surface leading-relaxed">
+                                Entschuldigung, wissen Sie, von welchem <span class="interactive-word" title="Platform/Track">Gleis</span> der ICE nach Hamburg fährt?
+                            </p>
+                            <p class="translation font-label-md">Excuse me, do you know which platform the ICE to Hamburg departs from?</p>
+                        </div>
+                        <div class="transcript-line p-3 rounded-lg opacity-60">
+                            <p class="font-body-lg text-on-surface leading-relaxed">
+                                Ja, der Zug fährt heute von Gleis 7 ab, aber er hat 15 Minuten Verspätung.
+                            </p>
+                            <p class="translation font-label-md">Yes, the train departs from track 7 today, but it is 15 minutes late.</p>
+                        </div>
+                        <div class="transcript-line p-3 rounded-lg opacity-60">
+                            <p class="font-body-lg text-on-surface leading-relaxed">
+                                Oh, danke! Muss ich meine <span class="interactive-word" title="Ticket">Fahrkarte</span> noch entwerten?
+                            </p>
+                            <p class="translation font-label-md">Oh, thanks! Do I still need to validate my ticket?</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scenario Challenge Section -->
+                
+            </section>
+
+            <!-- Practice Column -->
+            <aside class="lg:col-span-5 space-y-unit-xl">
+                <!-- Practice Header -->
+                <div class="flex items-center gap-2 px-unit-sm">
+                    <span class="w-2 h-8 bg-primary rounded-full"></span>
+                    <h3 class="font-headline-md text-on-surface font-semibold">Practice</h3>
+                </div>
+
+                <!-- MCQ Based on Screen 7 -->
+                <div class="bg-surface-container-lowest rounded-2xl p-unit-lg shadow-sm border border-outline-variant/30">
+                    <div class="flex items-start gap-4 mb-unit-lg">
+                        <button class="w-12 h-12 rounded-full bg-primary-container text-white flex items-center justify-center">
+                            <span class="material-symbols-outlined text-2xl">volume_up</span>
+                        </button>
+                        <div>
+                            <p class="font-body-lg text-on-surface font-medium">Wo finde ich Gleis 4?</p>
+                            <p class="text-on-surface-variant text-label-md">Where do I find platform 4?</p>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <button class="w-full flex items-center text-left p-4 bg-primary-container border-2 border-primary rounded-xl card-transition shadow-md">
+                            <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary text-white font-label-sm mr-4">A</div>
+                            <span class="font-body-md text-white font-medium flex-grow">Geradeaus und dann links</span>
+                            <span class="material-symbols-outlined text-white" style="font-variation-settings: &quot;FILL&quot; 1;">check_circle</span>
+                        </button>
+                        <button class="w-full flex items-center text-left p-4 bg-white border border-outline-variant rounded-xl card-transition group hover:bg-surface-container-low">
+                            <div class="w-8 h-8 flex items-center justify-center rounded-lg bg-surface-container-highest text-on-surface-variant font-label-sm mr-4">B</div>
+                            <span class="font-body-md text-on-surface flex-grow">Im Supermarkt</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Matching Exercise Based on Screen 6 -->
+                <div class="bg-surface-container-lowest rounded-2xl p-unit-lg shadow-sm border border-outline-variant/30">
+                    <h4 class="font-label-md text-on-surface-variant uppercase tracking-wider mb-unit-md">Vocabulary Match</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="space-y-2">
+                            <button class="w-full p-4 rounded-lg border-2 border-primary bg-primary/5 text-primary text-left font-medium text-sm">Gleis</button>
+                            <button class="w-full p-4 rounded-lg border border-outline-variant bg-white text-on-surface text-left text-sm hover:border-primary transition-colors">Fahrkarte</button>
+                        </div>
+                        <div class="space-y-2">
+                            <button class="w-full p-4 rounded-lg border-2 border-primary bg-primary/5 text-primary text-left font-medium text-sm flex justify-between items-center">
+                                Platform <span class="material-symbols-outlined text-xs">check</span>
+                            </button>
+                            <button class="w-full p-4 rounded-lg border border-outline-variant bg-white text-on-surface text-left text-sm hover:border-primary transition-colors">Ticket</button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <!-- Global Action Bar -->
+    <footer class="fixed bottom-0 left-0 w-full p-gutter z-40 pointer-events-none flex justify-center">
+        <button class="pointer-events-auto bg-primary text-white px-unit-xl py-4 rounded-full shadow-2xl flex items-center gap-unit-md hover:scale-105 transition-transform active:scale-95 group">
+            <span class="font-headline-md">Continue Lesson</span>
+            <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+        </button>
+    </footer>
+
+    <script>
+        // Generate procedural waveform
+        const waveform = document.getElementById('waveform');
+        const barCount = 60;
+        for (let i = 0; i < barCount; i++) {
+            const bar = document.createElement('div');
+            const height = Math.random() * 80 + 10;
+            bar.className = 'waveform-bar w-1 bg-primary/20 rounded-t-full';
+            bar.style.height = `${height}%`;
+            if (i < 20) bar.classList.replace('bg-primary/20', 'bg-primary');
+            waveform.appendChild(bar);
+        }
+
+        // Toggle Translations logic
+        const toggleAllBtn = document.getElementById('toggle-all-english');
+        const transcriptLines = document.querySelectorAll('.transcript-line');
+        
+        toggleAllBtn.addEventListener('click', () => {
+            const translations = document.querySelectorAll('.translation');
+            const isAnyActive = Array.from(translations).some(t => t.classList.contains('active'));
+            translations.forEach(t => t.classList.toggle('active', !isAnyActive));
+            toggleAllBtn.innerHTML = isAnyActive ? 
+                '<span class="material-symbols-outlined text-[18px]">translate</span> Show Translations' : 
+                '<span class="material-symbols-outlined text-[18px]">translate</span> Hide Translations';
+        });
+
+        transcriptLines.forEach(line => {
+            line.addEventListener('click', () => {
+                const trans = line.querySelector('.translation');
+                trans.classList.toggle('active');
+            });
+        });
+
+        // Simple Play/Pause logic
+        const playBtn = document.getElementById('main-play-btn');
+        let isPlaying = false;
+        playBtn.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            playBtn.querySelector('span').textContent = isPlaying ? 'pause' : 'play_arrow';
+            if(isPlaying) {
+                const bars = document.querySelectorAll('.waveform-bar');</script></body></html>

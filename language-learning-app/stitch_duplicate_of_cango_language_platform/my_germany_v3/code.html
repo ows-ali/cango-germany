@@ -1,0 +1,257 @@
+<!DOCTYPE html><html class="light" lang="de"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>CanGo | Home</title>
+<!-- Tailwind and Fonts -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Manrope:wght@600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Design Tokens Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d3e4fe",
+                        "surface-container-high": "#e2e7ff",
+                        "on-surface": "#131b2e",
+                        "on-primary-fixed": "#111c2d",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#eef0ff",
+                        "on-background": "#131b2e",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d2d9f4",
+                        "on-secondary-fixed": "#0b1c30",
+                        "outline-variant": "#c5c6cd",
+                        "secondary": "#505f76",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#d8e3fb",
+                        "surface-container-highest": "#dae2fd",
+                        "on-surface-variant": "#45474c",
+                        "outline": "#75777d",
+                        "surface-bright": "#faf8ff",
+                        "surface": "#faf8ff",
+                        "secondary-container": "#d0e1fb",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#091426",
+                        "on-primary-container": "#8590a6",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#26292b",
+                        "tertiary-fixed-dim": "#c4c7c9",
+                        "tertiary": "#111516",
+                        "on-error": "#ffffff",
+                        "background": "#faf8ff",
+                        "on-tertiary-container": "#8d9092",
+                        "tertiary-fixed": "#e0e3e5",
+                        "surface-container-low": "#f2f3ff",
+                        "surface-tint": "#545f73",
+                        "surface-container": "#eaedff",
+                        "primary-fixed-dim": "#bcc7de",
+                        "primary-container": "#1e293b",
+                        "on-primary-fixed-variant": "#3c475a",
+                        "on-tertiary-fixed": "#191c1e",
+                        "inverse-primary": "#bcc7de",
+                        "surface-variant": "#dae2fd",
+                        "on-secondary-container": "#54647a",
+                        "inverse-surface": "#283044",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "max-width": "1280px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg-mobile": ["Manrope"],
+                        "display-lg": ["Manrope"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        h1, h2, h3, h4, .font-headline { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .premium-card {
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e2e7ff;
+            transition: all 0.2s ease;
+        }
+        .premium-card:active {
+            transform: scale(0.98);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopAppBar -->
+<header class="bg-surface sticky top-0 z-40 border-b border-surface-container">
+<div class="flex justify-between items-center w-full px-margin-mobile h-16 max-w-max-width mx-auto">
+<div class="flex items-center gap-3"><img alt="CanGo Brand Mark" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida/AP1WRLtE0BqG36_9N-d3gPVpeKVdSwZVbLvvxhxW33QBc01S0Y7MGy1sqnRq0Y82Si9ItSITq0aJiqhaXb95Tb7AQmaLbr3NNrsh1Y5rVslBrA22trseQ-qTvfH8Io7VUEGcT1dguLhSSeZUkvzgis12ssOtHj3SRPKyVFe4c_HyAWA16HwbjBS7MU0IkaAZ-oO1wnaJ_ahDwCqDo5vSsfCIfXR_ILGM-XWZ06RB3C8cT5BucAZ3o1tJ_x-n2Q"></div>
+<div class="flex items-center gap-3">
+<div class="flex items-center gap-1 bg-surface-container px-2 py-1 rounded-full">
+<span class="text-label-sm text-on-surface">500 XP</span>
+</div>
+<div class="flex items-center gap-1 bg-secondary-container px-2 py-1 rounded-full">
+<span class="text-label-sm text-on-secondary-container">12 🔥</span>
+</div>
+<div class="w-8 h-8 rounded-full overflow-hidden border border-outline-variant">
+<img alt="Alex's Portrait" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCTYW0gMvnuVq5LxCkng25lEYDELL9VE4qtn-LPsMy8Dsrly3tee4jSDtZ4LSOneRzSeUDcJ1uzs7ZGMN8Enr5l139xk_es0G4kbcWqo3ErvbGaKuwsInfnizCSzSt-ukFEc95qJGzrcQ09EMq0eeBkMpbluR5F_V6U8cOSM-D56S1oSauu5mQGkvea_cOYu0t_bvKaqr59i4lJ0M6gkEVoEAAbBPj_D2BQmm_xIW7SaBmmgpObTrTfe6FNSfpLkm4mkHtmwlmr2w">
+</div>
+</div>
+</div>
+</header>
+<div class="flex max-w-max-width mx-auto">
+<!-- Main Content Area -->
+<main class="flex-1 px-margin-mobile py-6 pb-24">
+<!-- Header Section -->
+<section class="mb-8">
+<h1 class="text-display-lg-mobile text-on-surface mb-1">Guten Morgen, Alex</h1>
+<p class="text-body-lg text-on-surface-variant">Ready to master your German scenarios today?</p>
+</section>
+<!-- Dashboard / Goal Card -->
+<section class="mb-8">
+<div class="premium-card p-5 rounded-xl">
+<div class="flex flex-col gap-4">
+<div>
+<h2 class="text-label-sm text-secondary uppercase mb-2">Today's Goal</h2>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-bold text-on-surface">50</span>
+<span class="text-body-md text-on-surface-variant">/ 100 XP</span>
+</div>
+<div class="mt-4 w-full bg-surface-container-highest rounded-full h-2 overflow-hidden">
+<div class="bg-primary h-full rounded-full transition-all duration-700" style="width: 50%;"></div>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-3 rounded-lg font-semibold text-body-md shadow-sm">
+                            Quick Session
+                        </button>
+</div>
+</div>
+</section>
+<!-- Scenario Cards List -->
+<section class="space-y-6">
+<h3 class="text-headline-md text-on-surface">My Germany</h3>
+<!-- Scenario 1: Transportation -->
+<div class="premium-card flex flex-col rounded-xl overflow-hidden">
+<div class="h-40 relative">
+<img alt="ICE Train" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpdY7Yd1xSn78PM_64O0xp_tbhR7qgrGCLzePDoFXHcOHN8gRhvFUJ6J04UxwWVe4vgtGoxBwxZp5mufzHdOya70-F_2fNZZobCzgh3riKb1om2iTMXGbSp9Cg0H1627rLEbI_p3XLAdW_sq3KAWSGPNM8l7lKOggZ7c8NLdfP3tT1_Cs0veUcIv00jbYBwsrJj2W_l96E6l2y2fZLdMFZtxHoRT6No0KtnuTcxlaPHXngXnuXcD6J9ejvVA2_8Obygbt2Ktk9rg">
+<div class="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-[10px] font-bold text-primary border border-surface-container">B1 Intermediate</div>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-xl">train</span>
+<h4 class="text-body-lg font-bold text-on-surface">Transportation</h4>
+</div>
+<p class="text-body-md text-on-surface-variant mb-4">Tickets, delays, and navigating the DB network.</p>
+<div class="flex items-center justify-between gap-4">
+<div class="flex-1">
+<div class="flex justify-between text-label-sm text-on-surface-variant mb-1">
+<span class="">Progress</span>
+<span class="">65%</span>
+</div>
+<div class="h-1 bg-surface-container rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 65%;"></div>
+</div>
+</div>
+<button class="bg-primary text-on-primary px-4 py-2 rounded-lg font-semibold text-label-sm">
+                                Continue
+                            </button>
+</div>
+</div>
+</div>
+<!-- Scenario 2: Doctor -->
+<div class="premium-card flex flex-col rounded-xl overflow-hidden">
+<div class="h-40 relative">
+<img alt="Doctor's Office" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHMcsFFCMvFzT4wUCGhgHWLaiAde1GIdpiGtlxliP0F5fsxjrGsgPNYsmTLHdVL2hBp2GUIIo4d4Rs2fxr5M7JUzbYn34Avb9yQ1mc1APvpfOa8qLS13MxBouAzYG6yNcAHrsk3usbjUNrLE9Qx0PNBnBjINQFNSsFxjFe66na6ixz3PBXuEO9KLL0FHxGURz1I67aJuAZE25ngCsZhqC3cX5PhzDplPAz-6Itw8kuSK2yGX4lTGA5EjFwG2U8XVJxcgDOSJYEsQ">
+<div class="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-[10px] font-bold text-primary border border-surface-container">A2 Pre-Intermediate</div>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-xl">medical_services</span>
+<h4 class="text-body-lg font-bold text-on-surface">The Doctor's Visit</h4>
+</div>
+<p class="text-body-md text-on-surface-variant mb-4">Explaining symptoms and prescriptions.</p>
+<div class="flex items-center justify-end">
+<button class="border border-primary text-primary px-6 py-2 rounded-lg font-semibold text-label-sm">
+                                Start
+                            </button>
+</div>
+</div>
+</div>
+<!-- Scenario 3: Job Interview (Unlocked) -->
+<div class="premium-card flex flex-col rounded-xl overflow-hidden">
+<div class="h-40 relative">
+<img alt="Office Interview" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9z7bfTHtsqcHSkqBe4XufjLTxlsYZc7w9qIQiPu41eeWX1ZrBClPlM0fysVColiX0kjmY__shUEzEZJR5lTAekyXUkS0WVBleaPenCuWxh6acpj__Uu79cyL3StTAJy7JmQy25zzb0YrwFUcjNhxiKfYlqPk-3F4l9a056PGwr2nF56OP27083tVWSYt11VSEamulckErOJia1EsEW0Xw-C77Qs9OP1RXT_nBwPQiQAlRpbHoDe_lrsFmp2514pNc_-9PJpMRpA">
+<div class="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-[10px] font-bold text-primary border border-surface-container">B2 Upper Intermediate</div>
+</div>
+<div class="p-4">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary text-xl">work</span>
+<h4 class="text-body-lg font-bold text-on-surface">Job Interview</h4>
+</div>
+<p class="text-body-md text-on-surface-variant mb-4">Professional terminology for the corporate world.</p>
+<div class="flex items-center justify-end">
+<button class="border border-primary text-primary px-6 py-2 rounded-lg font-semibold text-label-sm">
+                                Start</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 bg-surface border-t border-surface-container z-50 rounded-t-xl">
+<a class="flex flex-col items-center justify-center text-primary px-3 py-1" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] font-semibold">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-[10px] font-semibold">Vocab</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[10px] font-semibold">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-3 py-1" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-semibold">Profile</span>
+</a>
+</nav>
+
+
+</body></html>

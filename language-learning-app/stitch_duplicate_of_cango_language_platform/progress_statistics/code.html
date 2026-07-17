@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CanGo - Progress Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "on-surface": "#131b2e",
+            "on-secondary-container": "#54647a",
+            "on-primary-container": "#8590a6",
+            "tertiary": "#111516",
+            "on-tertiary-container": "#8d9092",
+            "on-primary-fixed-variant": "#3c475a",
+            "on-primary-fixed": "#111c2d",
+            "on-secondary-fixed-variant": "#38485d",
+            "surface-container-highest": "#dae2fd",
+            "secondary-fixed-dim": "#b7c8e1",
+            "surface-container-high": "#e2e7ff",
+            "primary-fixed-dim": "#bcc7de",
+            "surface-variant": "#dae2fd",
+            "surface-container-lowest": "#ffffff",
+            "inverse-surface": "#283044",
+            "background": "#faf8ff",
+            "primary-container": "#1e293b",
+            "on-tertiary-fixed": "#191c1e",
+            "tertiary-container": "#26292b",
+            "on-secondary-fixed": "#0b1c30",
+            "tertiary-fixed-dim": "#c4c7c9",
+            "on-surface-variant": "#45474c",
+            "outline-variant": "#c5c6cd",
+            "secondary": "#505f76",
+            "on-background": "#131b2e",
+            "inverse-on-surface": "#eef0ff",
+            "surface-container-low": "#f2f3ff",
+            "surface-container": "#eaedff",
+            "primary": "#091426",
+            "on-error-container": "#93000a",
+            "surface-tint": "#545f73",
+            "on-tertiary": "#ffffff",
+            "secondary-fixed": "#d3e4fe",
+            "inverse-primary": "#bcc7de",
+            "on-primary": "#ffffff",
+            "error-container": "#ffdad6",
+            "error": "#ba1a1a",
+            "surface-bright": "#faf8ff",
+            "tertiary-fixed": "#e0e3e5",
+            "primary-fixed": "#d8e3fb",
+            "secondary-container": "#d0e1fb",
+            "surface-dim": "#d2d9f4",
+            "on-tertiary-fixed-variant": "#444749",
+            "surface": "#faf8ff",
+            "on-secondary": "#ffffff",
+            "on-error": "#ffffff",
+            "outline": "#75777d"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.125rem",
+            "lg": "0.25rem",
+            "xl": "0.5rem",
+            "full": "0.75rem"
+          },
+          "spacing": {
+            "max-width": "1280px",
+            "gutter": "24px",
+            "margin-mobile": "16px",
+            "margin-desktop": "64px",
+            "unit": "4px"
+          },
+          "fontFamily": {
+            "display-lg": ["Manrope"],
+            "body-md": ["Inter"],
+            "label-sm": ["JetBrains Mono"],
+            "headline-md": ["Manrope"],
+            "body-lg": ["Inter"],
+            "display-lg-mobile": ["Manrope"]
+          },
+          "fontSize": {
+            "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+            "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+            "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+            "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .chart-bar {
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .hover-lift {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .hover-lift:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body-md min-h-screen pb-24 md:pb-0">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky z-50 bg-surface border-b border-outline-variant">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 w-full max-w-max-width mx-auto">
+<div class="flex items-center gap-4">
+<div class="cursor-pointer active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary text-headline-md font-headline-md">language</span>
+</div>
+<div class="hidden md:flex gap-8 ml-8">
+<a class="text-on-secondary-container hover:text-primary transition-colors font-body-md" href="#">Home</a>
+<a class="text-on-secondary-container hover:text-primary transition-colors font-body-md" href="#">Vocab</a>
+<a class="text-primary font-bold font-body-md" href="#">Stats</a>
+<a class="text-on-secondary-container hover:text-primary transition-colors font-body-md" href="#">Profile</a>
+</div>
+</div>
+<div class="flex items-center gap-4 text-body-md font-body-md text-primary">
+<div class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-low rounded-lg border border-outline-variant">
+<span class="font-label-sm text-label-sm">500</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">stars</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1.5 bg-secondary-container text-primary rounded-lg">
+<span class="font-label-sm text-label-sm uppercase tracking-wider">12</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-12">
+<!-- Hero Section -->
+<section class="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-12">
+<div class="md:col-span-8">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary mb-2">Learning Journey</h1>
+<p class="text-on-secondary-container text-body-lg max-w-2xl">You've reached <span class="font-bold text-primary">Mastery Level 2</span>. Keep the momentum going to unlock the Professional Business module.</p>
+</div>
+<div class="md:col-span-4 flex items-end justify-start md:justify-end">
+<button class="bg-primary text-white px-8 py-3 rounded-lg hover:opacity-90 transition-all active:scale-95 font-body-md">
+          Resume Learning
+        </button>
+</div>
+</section>
+<!-- Stats Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-gutter mb-12">
+<!-- XP Card -->
+<div class="md:col-span-1 bg-white p-6 border border-outline-variant rounded-xl hover-lift">
+<div class="flex items-center gap-2 mb-4 text-on-secondary-container">
+<span class="material-symbols-outlined">bolt</span>
+<span class="font-label-sm text-label-sm">TOTAL EXPERIENCE</span>
+</div>
+<div class="text-display-lg-mobile font-display-lg-mobile text-primary">45,800</div>
+<div class="mt-2 text-label-sm font-label-sm text-on-primary-container">Top 5% of learners this month</div>
+</div>
+<!-- Modules Card -->
+<div class="md:col-span-1 bg-white p-6 border border-outline-variant rounded-xl hover-lift">
+<div class="flex items-center gap-2 mb-4 text-on-secondary-container">
+<span class="material-symbols-outlined">view_module</span>
+<span class="font-label-sm text-label-sm">MODULES COMPLETED</span>
+</div>
+<div class="text-display-lg-mobile font-display-lg-mobile text-primary">24 / 40</div>
+<div class="mt-2 w-full bg-surface-container rounded-full h-1">
+<div class="bg-primary h-1 rounded-full" style="width: 60%"></div>
+</div>
+</div>
+<!-- Mastery Visualization -->
+<div class="md:col-span-2 bg-white p-6 border border-outline-variant rounded-xl hover-lift flex flex-col justify-between">
+<div class="flex justify-between items-center mb-6">
+<div class="flex items-center gap-2 text-on-secondary-container">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-sm text-label-sm">MASTERY OVERVIEW</span>
+</div>
+<span class="text-label-sm font-label-sm text-primary">UP 12% THIS WEEK</span>
+</div>
+<div class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between text-label-sm font-label-sm text-on-secondary-container">
+<span>Transportation</span>
+<span>88%</span>
+</div>
+<div class="w-full bg-surface-container rounded-sm h-2">
+<div class="bg-primary h-2 rounded-sm chart-bar" style="width: 88%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-label-sm font-label-sm text-on-secondary-container">
+<span>Work &amp; Professional</span>
+<span>42%</span>
+</div>
+<div class="w-full bg-surface-container rounded-sm h-2">
+<div class="bg-primary h-2 rounded-sm chart-bar" style="width: 42%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-label-sm font-label-sm text-on-secondary-container">
+<span>Daily Life Essentials</span>
+<span>65%</span>
+</div>
+<div class="w-full bg-surface-container rounded-sm h-2">
+<div class="bg-primary h-2 rounded-sm chart-bar" style="width: 65%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Featured Achievement & History -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-gutter">
+<!-- Main Content Area -->
+<div class="md:col-span-8 space-y-gutter">
+<div class="bg-surface-container-low border border-outline-variant rounded-xl p-8 flex flex-col md:flex-row items-center gap-8">
+<div class="w-32 h-32 rounded-full overflow-hidden bg-white border-2 border-primary-container shrink-0">
+<img class="w-full h-full object-cover" data-alt="A macro photograph of a professional business person's hands holding a minimalist ceramic coffee cup on a modern stone balcony. In the soft-focus background, the historic skyline of a European city is bathed in the golden, warm light of sunset. The overall mood is sophisticated, calm, and achievement-oriented, reflecting a successful executive lifestyle." src="https://lh3.googleusercontent.com/aida-public/AB6AXuATBrU9H8UJv--UMVkrp0mpu8gmVigHSEvbExXV5aM0I9X_Bm3PqnmF94x766MdEvwm0FJsHYSk_OUh3rURKVp7gQ9cJSoIeuFfxEep-7Bh7hozXmGsqlUS5OVnMr30leDx9AgLVltLCVE0Mz7iMqGpZLFMy1-y9yseAkIbzDiGCEikyU8KdFeMYYNt4A-8bPTtJdFVyyoTEwqOJauaLc0WlO-VV0MqgLNji1Clf6RzvqfUrmuuYU8D8dplQuI6zgXxKja6M1JDmw"/>
+</div>
+<div>
+<span class="inline-block px-2 py-1 bg-primary text-white text-[10px] font-label-sm mb-4">MILESTONE UNLOCKED</span>
+<h3 class="text-headline-md font-headline-md text-primary mb-2">Urban Navigator</h3>
+<p class="text-on-secondary-container text-body-md mb-4">You've successfully mastered all transit-related terminology and practical scenarios for Munich, Germany.</p>
+<div class="flex gap-4">
+<div class="flex items-center gap-1 text-label-sm font-label-sm bg-white px-3 py-1 border border-outline-variant rounded">
+<span class="material-symbols-outlined text-sm">workspace_premium</span>
+                Badge Earned
+              </div>
+<div class="flex items-center gap-1 text-label-sm font-label-sm bg-white px-3 py-1 border border-outline-variant rounded">
+<span class="material-symbols-outlined text-sm">add_circle</span>
+                +500 XP
+              </div>
+</div>
+</div>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-6">
+<h3 class="font-headline-md text-headline-md text-primary mb-6">Recent Activity</h3>
+<div class="space-y-0">
+<div class="flex items-center justify-between py-4 border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">train</span>
+</div>
+<div>
+<div class="text-body-md font-bold text-primary">Public Transport Quiz</div>
+<div class="text-label-sm text-on-secondary-container">Completed with 95% accuracy</div>
+</div>
+</div>
+<div class="text-label-sm font-label-sm text-on-primary-container">2h ago</div>
+</div>
+<div class="flex items-center justify-between py-4 border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">restaurant</span>
+</div>
+<div>
+<div class="text-body-md font-bold text-primary">Ordering at a Café</div>
+<div class="text-label-sm text-on-secondary-container">Vocabulary set learned</div>
+</div>
+</div>
+<div class="text-label-sm font-label-sm text-on-primary-container">Yesterday</div>
+</div>
+<div class="flex items-center justify-between py-4">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">work</span>
+</div>
+<div>
+<div class="text-body-md font-bold text-primary">Intro to Business German</div>
+<div class="text-label-sm text-on-secondary-container">New module unlocked</div>
+</div>
+</div>
+<div class="text-label-sm font-label-sm text-on-primary-container">3 days ago</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar -->
+<div class="md:col-span-4 space-y-gutter">
+<div class="bg-inverse-surface text-inverse-on-surface p-6 rounded-xl relative overflow-hidden">
+<div class="relative z-10">
+<h4 class="font-label-sm text-label-sm text-on-primary-container mb-2">WEEKLY CHALLENGE</h4>
+<div class="text-headline-md font-headline-md mb-4">The 7-Day Sprint</div>
+<p class="text-body-md opacity-80 mb-6">Complete 3 modules in 7 days to earn the Limited Edition 'Sprint Master' badge.</p>
+<div class="bg-white/10 rounded-lg p-4 backdrop-blur-md">
+<div class="flex justify-between text-label-sm font-label-sm mb-2">
+<span>Progress</span>
+<span>2/3 Modules</span>
+</div>
+<div class="w-full bg-white/20 h-1.5 rounded-full overflow-hidden">
+<div class="bg-white h-full" style="width: 66%"></div>
+</div>
+</div>
+</div>
+<!-- Abstract Background Pattern -->
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container opacity-20 -mr-16 -mt-16 rounded-full blur-2xl"></div>
+</div>
+<div class="bg-white border border-outline-variant rounded-xl p-6">
+<h4 class="font-label-sm text-label-sm text-on-secondary-container mb-4">FRIENDS ACTIVITY</h4>
+<div class="space-y-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center font-label-sm">JS</div>
+<div class="text-body-md flex-1">Jonas S. is on a 25 day streak!</div>
+<span class="material-symbols-outlined text-sm text-primary" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest flex items-center justify-center font-label-sm">ML</div>
+<div class="text-body-md flex-1">Marie L. just finished Module 10</div>
+<span class="material-symbols-outlined text-sm text-primary">done_all</span>
+</div>
+</div>
+<button class="w-full mt-6 py-2 text-label-sm font-label-sm border border-outline text-primary hover:bg-surface-container-low transition-colors rounded">VIEW ALL FRIENDS</button>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-surface border-t border-outline-variant shadow-lg">
+<div class="flex justify-around items-center h-16 w-full max-w-max-width mx-auto">
+<div class="flex flex-col items-center justify-center text-on-secondary-container px-4 py-1 hover:text-primary transition-all duration-300">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-[10px]">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-secondary-container px-4 py-1 hover:text-primary transition-all duration-300">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="font-label-sm text-[10px]">Vocab</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary bg-secondary-container rounded-xl px-4 py-1 transition-all duration-300">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">leaderboard</span>
+<span class="font-label-sm text-[10px] font-bold">Stats</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-secondary-container px-4 py-1 hover:text-primary transition-all duration-300">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-[10px]">Profile</span>
+</div>
+</div>
+</nav>
+<script>
+    // Micro-interactions
+    document.querySelectorAll('.hover-lift').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.style.boxShadow = '0 10px 30px rgba(15, 23, 42, 0.05)';
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.boxShadow = 'none';
+      });
+    });
+
+    // Animate bars on load
+    window.addEventListener('DOMContentLoaded', () => {
+      const bars = document.querySelectorAll('.chart-bar');
+      bars.forEach(bar => {
+        const targetWidth = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+          bar.style.width = targetWidth;
+        }, 100);
+      });
+    });
+  </script>
+</body></html>

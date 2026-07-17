@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en" style=""><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .streak-glow {
+            filter: drop-shadow(0 0 8px rgba(186, 26, 26, 0.4));
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 1s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .bg-subtle-pattern {
+            background-image: radial-gradient(#e2e8f0 0.5px, transparent 0.5px);
+            background-size: 24px 24px;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary": "#111516",
+                    "surface-tint": "#545f73",
+                    "outline-variant": "#c5c6cd",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "tertiary-fixed-dim": "#c4c7c9",
+                    "background": "#faf8ff",
+                    "error": "#ba1a1a",
+                    "surface-variant": "#dae2fd",
+                    "surface-container-high": "#e2e7ff",
+                    "inverse-surface": "#283044",
+                    "secondary": "#505f76",
+                    "on-secondary-container": "#54647a",
+                    "on-tertiary": "#ffffff",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "on-tertiary-fixed": "#191c1e",
+                    "tertiary-fixed": "#e0e3e5",
+                    "on-primary-fixed": "#111c2d",
+                    "surface-bright": "#faf8ff",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "on-secondary-fixed": "#0b1c30",
+                    "surface": "#faf8ff",
+                    "surface-container-lowest": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "surface-dim": "#d2d9f4",
+                    "secondary-fixed": "#d3e4fe",
+                    "on-error": "#ffffff",
+                    "outline": "#75777d",
+                    "on-tertiary-fixed-variant": "#444749",
+                    "on-tertiary-container": "#8d9092",
+                    "primary": "#091426",
+                    "on-surface": "#131b2e",
+                    "primary-fixed": "#d8e3fb",
+                    "on-primary-container": "#8590a6",
+                    "tertiary-container": "#26292b",
+                    "primary-container": "#1e293b",
+                    "surface-container-highest": "#dae2fd",
+                    "secondary-container": "#d0e1fb",
+                    "inverse-primary": "#bcc7de",
+                    "primary-fixed-dim": "#bcc7de",
+                    "surface-container": "#eaedff",
+                    "on-background": "#131b2e"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "unit": "4px",
+                    "margin-desktop": "64px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "max-width": "1280px"
+            },
+            "fontFamily": {
+                    "label-sm": ["JetBrains Mono"],
+                    "display-lg": ["Manrope"],
+                    "body-lg": ["Inter"],
+                    "display-lg-mobile": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "headline-md": ["Manrope"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen font-body-md text-body-md selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Top Navigation Anchor (As per Shared Components JSON) -->
+<header class="fixed top-0 w-full z-50 flex items-center justify-between px-margin-mobile h-16 bg-surface">
+<div class="flex items-center gap-4">
+<!-- Textless Logo as per Style Guidance -->
+<div class="w-8 h-8 bg-primary flex items-center justify-center rounded-sm">
+<span class="material-symbols-outlined text-white text-xl">school</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<!-- Streak Animated Component -->
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full streak-glow">
+<span class="material-symbols-outlined text-error" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-label-sm text-label-sm text-on-surface">500 XP</span>
+</div>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-variant p-2 rounded-full transition-colors active:scale-95 duration-100">
+                close
+            </button>
+</div>
+</header>
+<main class="relative pt-24 pb-32 px-margin-mobile md:px-margin-desktop max-w-screen-xl mx-auto flex flex-col items-center justify-center min-h-screen overflow-hidden">
+<!-- Subtle Background Texture -->
+<div class="absolute inset-0 bg-subtle-pattern opacity-40 pointer-events-none -z-10"></div>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-white/50 to-background -z-10"></div>
+<!-- Hero Content Section -->
+<div class="w-full max-w-2xl text-center space-y-12">
+<!-- Celebration Graphic (Bento/Minimalist Card) -->
+<div class="relative flex justify-center py-8">
+<div class="relative z-10 animate-float">
+<img class="w-64 h-64 md:w-80 md:h-80 object-contain drop-shadow-2xl" data-alt="A minimalist, premium 3D sculpture of a crystalline trophy with geometric facets. The lighting is sophisticated and soft, using high-end studio illumination. The color palette consists of deep charcoals, crisp whites, and a single accent of glowing blue-indigo. The background is a clean, vast gallery space with soft shadows, reflecting a professional European minimalist aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYm2VuVOqxjbcqFbqcKDvuFqhgxMmDBIgIYicJQJOoh3pPmIaHWN6iJHjJEMrpLcA6H2OGI6_Ljgv-x0MnOLtzf_1fkU7BlpWbyNcGDY1H12vu-RRTHStHj18X7SwLUa4SfBV7p0DeITcXjZDHv9pfmv4KYodXGCTtzT7I9yE1Sm2mLai6y6fIsWa48-Lv7oza2a1rldrM58JnRasO3ZrzAMSN9zKwcqXtiBRUbV8tLiwVd-2uhzXgOWAek2jAHRl_ZB6HZHlOfg"/>
+</div>
+<!-- Abstract aura -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary-fixed/30 blur-[100px] rounded-full"></div>
+</div>
+<!-- Headline & Content -->
+<div class="space-y-4">
+<h1 class="font-display-lg-mobile md:font-display-lg text-display-lg-mobile md:text-display-lg text-primary tracking-tight">
+                    Excellent work, Alex!
+                </h1>
+<p class="text-on-surface-variant font-body-lg text-body-lg max-w-md mx-auto">
+                    You've successfully completed this module.</p>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter py-6">
+<!-- XP Card -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/30 flex flex-col items-center gap-3 transition-transform hover:scale-[1.02] duration-300" style="border-color: rgba(197, 198, 205, 0.3);">
+<div class="w-12 h-12 bg-secondary-container text-on-secondary-container flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined">stars</span>
+</div>
+<div class="text-center">
+<div class="font-headline-md text-headline-md text-primary">+70 XP Earned</div>
+<div class="font-label-sm text-label-sm text-on-secondary-container uppercase tracking-widest">+20 Bonus XP Included</div>
+</div>
+</div>
+<!-- Progress Circle Card -->
+<div class="bg-surface-container-lowest p-8 rounded-xl border border-outline-variant/30 flex flex-col items-center gap-3 transition-transform hover:scale-[1.02] duration-300" style="border-color: rgba(197, 198, 205, 0.3);">
+<div class="relative w-20 h-20 flex items-center justify-center">
+<svg class="w-full h-full progress-ring" viewbox="0 0 100 100">
+<circle class="stroke-surface-container-high" cx="50" cy="50" fill="transparent" r="42" stroke-width="8"></circle>
+<circle class="progress-ring__circle stroke-primary" cx="50" cy="50" fill="transparent" r="42" stroke-dasharray="263.89" stroke-dashoffset="65.97" stroke-linecap="round" stroke-width="8" style="stroke-dasharray: 263.894, 263.894; stroke-dashoffset: 65.9734;"></circle>
+</svg>
+<div class="absolute font-label-sm text-label-sm text-primary">75%</div>
+</div>
+<div class="text-center">
+<div class="font-headline-md text-headline-md text-primary">Transportation</div>
+<div class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Mastery Progress</div>
+</div>
+</div>
+</div>
+<!-- CTA Buttons -->
+<div class="flex flex-col md:flex-row gap-4 justify-center items-center pt-8">
+<button class="w-full md:w-auto min-w-[240px] h-14 bg-primary text-white font-body-md font-semibold px-8 rounded-full hover:bg-on-primary-fixed transition-all active:scale-95 duration-200">
+                    Continue Learning
+                </button>
+<button class="w-full md:w-auto min-w-[240px] h-14 bg-transparent border border-outline-variant text-primary font-body-md font-semibold px-8 rounded-full hover:bg-surface-variant transition-all active:scale-95 duration-200">
+                    Review Lesson
+                </button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Shell (Filtered for transactional screen but kept as reference for shared component structure) -->
+<!-- Hidden on this screen to prioritize the focused completion state -->
+<nav class="fixed bottom-0 w-full z-50 flex justify-around items-center px-4 py-2 bg-surface transform translate-y-full transition-transform" id="global-nav">
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined">play_circle</span>
+<span class="font-label-sm text-label-sm">Lesson</span>
+</div>
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full p-2">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">insights</span>
+<span class="font-label-sm text-label-sm">Progress</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant p-2">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction for progress ring
+        window.addEventListener('DOMContentLoaded', () => {
+            const circle = document.querySelector('.progress-ring__circle');
+            if (circle) {
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                circle.style.strokeDasharray = `${circumference} ${circumference}`;
+                
+                // Set initial offset for 0%
+                circle.style.strokeDashoffset = circumference;
+                
+                // Animate to 75%
+                setTimeout(() => {
+                    const offset = circumference - (75 / 100 * circumference);
+                    circle.style.strokeDashoffset = offset;
+                }, 400);
+            }
+        });
+
+        // Hover lift effect for cards
+        document.querySelectorAll('.bg-surface-container-lowest').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.borderColor = 'rgba(9, 20, 38, 0.2)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.borderColor = 'rgba(197, 198, 205, 0.3)';
+            });
+        });
+    </script>
+</body></html>

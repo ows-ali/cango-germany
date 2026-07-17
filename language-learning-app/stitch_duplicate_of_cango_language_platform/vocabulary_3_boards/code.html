@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en" style=""><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&amp;family=Manrope:wght@600;700&amp;family=JetBrains+Mono:wght@500&amp;display=swap" rel="stylesheet"/><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-surface": "#131b2e",
+                    "on-secondary-container": "#54647a",
+                    "on-primary-container": "#8590a6",
+                    "tertiary": "#111516",
+                    "on-tertiary-container": "#8d9092",
+                    "on-primary-fixed-variant": "#3c475a",
+                    "on-primary-fixed": "#111c2d",
+                    "on-secondary-fixed-variant": "#38485d",
+                    "surface-container-highest": "#dae2fd",
+                    "secondary-fixed-dim": "#b7c8e1",
+                    "surface-container-high": "#e2e7ff",
+                    "primary-fixed-dim": "#bcc7de",
+                    "surface-variant": "#dae2fd",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#283044",
+                    "background": "#faf8ff",
+                    "primary-container": "#1e293b",
+                    "on-tertiary-fixed": "#191c1e",
+                    "tertiary-container": "#26292b",
+                    "on-secondary-fixed": "#0b1c30",
+                    "tertiary-fixed-dim": "#c4c7c9",
+                    "on-surface-variant": "#45474c",
+                    "outline-variant": "#c5c6cd",
+                    "secondary": "#505f76",
+                    "on-background": "#131b2e",
+                    "inverse-on-surface": "#eef0ff",
+                    "surface-container-low": "#f2f3ff",
+                    "surface-container": "#eaedff",
+                    "primary": "#091426",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "#545f73",
+                    "on-tertiary": "#ffffff",
+                    "secondary-fixed": "#d3e4fe",
+                    "inverse-primary": "#bcc7de",
+                    "on-primary": "#ffffff",
+                    "error-container": "#ffdad6",
+                    "error": "#ba1a1a",
+                    "surface-bright": "#faf8ff",
+                    "tertiary-fixed": "#e0e3e5",
+                    "primary-fixed": "#d8e3fb",
+                    "secondary-container": "#d0e1fb",
+                    "surface-dim": "#d2d9f4",
+                    "on-tertiary-fixed-variant": "#444749",
+                    "surface": "#faf8ff",
+                    "on-secondary": "#ffffff",
+                    "on-error": "#ffffff",
+                    "outline": "#75777d"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "max-width": "1280px",
+                    "gutter": "24px",
+                    "margin-mobile": "16px",
+                    "margin-desktop": "64px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "display-lg": ["Manrope"],
+                    "body-md": ["Inter"],
+                    "label-sm": ["JetBrains Mono"],
+                    "headline-md": ["Manrope"],
+                    "body-lg": ["Inter"],
+                    "display-lg-mobile": ["Manrope"]
+            },
+            "fontSize": {
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    }catch(_e){}</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head><body class="bg-background text-on-surface font-body-md min-h-screen pb-24">
+<!-- TopAppBar -->
+<nav class="bg-surface border-b border-outline-variant w-full top-0 sticky z-50">
+<div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop py-4 w-full max-w-max-width mx-auto">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary cursor-pointer active:scale-95 duration-200">language</span>
+<!-- Textless Logo Mark -->
+<div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+<div class="w-4 h-4 bg-white rotate-45"></div>
+</div>
+</div>
+<div class="flex items-center gap-4 font-label-sm text-label-sm text-primary">
+<div class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-low rounded-xl fire-streak">
+<span class="material-symbols-outlined text-[18px] text-orange-500" style="font-variation-settings: 'FILL' 1;">local_fire_department</span>
+<span class="font-bold">4500</span>
+</div>
+<div class="flex items-center gap-1.5 px-3 py-1.5 bg-surface-container-low rounded-xl">
+<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">stars</span>
+<span class="font-bold">500 XP</span>
+</div>
+</div>
+</div>
+</nav>
+<main class="max-w-max-width mx-auto px-margin-mobile md:px-margin-desktop py-8">
+<!-- Hero Section -->
+<header class="mb-10 relative overflow-hidden rounded-xl h-48 md:h-64 flex items-center">
+<div class="absolute inset-0 z-0">
+<div class="absolute inset-0 bg-gradient-to-r from-primary/80 to-transparent z-10"></div>
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAVAqqnZ9BWm3ln2LM0Kz6p0OyQrT0gjRkae3LGXAlydfFLrAD1v1MuF19kI4FEJsWGk8u1Uo00GDlt3bb6ymKjCKSHTqJ4VEdLP8AF0fCacq-GKUFG1tZi1DSPQ2P_I3e_UvIUZEjwHKhvHZEsgrPCnkUaXvdGnFnIb33CydRYR2VdEh2tqmGsvEk9rcFcxD499x-yJGIilrJrSK2kEZld7FO6PCH65fAsIGWviKjU4opVWgKoX4p_0ymGoaIk9fBj5V2peSK3MQ')"></div>
+</div>
+<div class="relative z-20 px-8">
+<h1 class="text-white font-display-lg-mobile md:text-display-lg font-display-lg mb-1">Vocab</h1>
+<p class="text-white/80 font-body-md max-w-xs">Curated words from your journey.</p>
+</div>
+</header>
+<!-- Boards Navigation (Tabs) -->
+<div class="flex border-b border-outline-variant mb-8 overflow-x-auto no-scrollbar">
+<button class="tab-active px-6 py-4 text-label-sm uppercase tracking-wider whitespace-nowrap" id="tab-recent" onclick="switchTab('recent')">Learning</button>
+<button class="px-6 py-4 text-on-secondary-container hover:text-primary text-label-sm uppercase tracking-wider whitespace-nowrap" id="tab-mastered" onclick="switchTab('mastered')">Reviewing</button>
+<button class="px-6 py-4 text-on-secondary-container hover:text-primary text-label-sm uppercase tracking-wider whitespace-nowrap" id="tab-needs-review" onclick="switchTab('needs-review')">Mastered</button>
+</div>
+<!-- RECENTLY ADDED BOARD -->
+<section class="active" data-tab-content="" id="content-recent">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="vocab-card rounded-xl shadow-sm hover:shadow-md border-l-4 border-l-primary" onclick="toggleMeaning(this)">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Gleis</h3>
+<p class="meaning-mask text-on-secondary-container font-body-md mt-1">Platform / Track</p>
+</div>
+</div>
+<div class="vocab-card rounded-xl shadow-sm hover:shadow-md border-l-4 border-l-primary" onclick="toggleMeaning(this)">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Fahrkarte</h3>
+<p class="meaning-mask text-on-secondary-container font-body-md mt-1">Ticket</p>
+</div>
+</div>
+<div class="vocab-card rounded-xl shadow-sm hover:shadow-md border-l-4 border-l-primary" onclick="toggleMeaning(this)">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Bäckerei</h3>
+<p class="meaning-mask text-on-secondary-container font-body-md mt-1">Bakery</p>
+</div>
+</div>
+<!-- Add New Word -->
+<div class="vocab-card rounded-xl border-2 border-dashed border-outline-variant bg-transparent flex-col text-on-secondary-container hover:border-primary hover:text-primary">
+<span class="material-symbols-outlined text-[32px] mb-2">add_circle</span>
+<span class="font-label-sm text-label-sm uppercase tracking-widest">Add New</span>
+</div>
+</div>
+</section>
+<!-- MASTERED BOARD -->
+<section data-tab-content="" id="content-mastered">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="vocab-card rounded-xl shadow-sm border-l-4 border-l-green-600" onclick="toggleMeaning(this)">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Ausgang</h3>
+<p class="meaning-mask text-on-secondary-container font-body-md mt-1">Exit</p>
+</div>
+</div>
+<div class="vocab-card rounded-xl shadow-sm border-l-4 border-l-green-600" onclick="toggleMeaning(this)">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Danke</h3>
+<p class="meaning-mask text-on-secondary-container font-body-md mt-1">Thank you</p>
+</div>
+</div>
+<div class="vocab-card rounded-xl shadow-sm border-l-4 border-l-green-600" onclick="toggleMeaning(this)">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Wasser</h3>
+<p class="meaning-mask text-on-secondary-container font-body-md mt-1">Water</p>
+</div>
+</div>
+</div>
+</section>
+<!-- NEEDS REVIEW BOARD -->
+<section data-tab-content="" id="content-needs-review">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+<div class="vocab-card rounded-xl shadow-sm border-l-4 border-l-error" onclick="toggleMeaning(this)">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Verspätung</h3>
+<p class="meaning-mask text-on-secondary-container font-body-md mt-1">Delay</p>
+</div>
+</div>
+<div class="vocab-card rounded-xl shadow-sm border-l-4 border-l-error" onclick="toggleMeaning(this)">
+<div>
+<h3 class="font-headline-md text-headline-md text-primary">Umsteigen</h3>
+<p class="meaning-mask text-on-secondary-container font-body-md mt-1">To change (trains)</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<footer class="fixed bottom-0 w-full z-50 bg-surface border-t border-outline-variant">
+<div class="flex justify-around items-center h-16 w-full max-w-max-width mx-auto">
+<a class="flex flex-col items-center justify-center text-on-secondary-container px-4 py-1 hover:text-primary transition-all duration-300" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-sm text-label-sm">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary bg-secondary-container rounded-xl px-4 py-1 transition-all duration-300" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">menu_book</span>
+<span class="font-label-sm text-label-sm font-bold">Vocab</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-container px-4 py-1 hover:text-primary transition-all duration-300" href="#">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="font-label-sm text-label-sm">Stats</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-secondary-container px-4 py-1 hover:text-primary transition-all duration-300" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</a>
+</div>
+</footer>
+<script>
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('[data-tab-content]').forEach(content => {
+                content.classList.remove('active');
+            });
+            // Reset tab styles
+            document.querySelectorAll('[onclick^="switchTab"]').forEach(tab => {
+                tab.classList.remove('tab-active');
+                tab.classList.add('text-on-secondary-container');
+            });
+
+            // Show active content
+            document.getElementById('content-' + tabId).classList.add('active');
+            // Set active tab style
+            const activeTab = document.getElementById('tab-' + tabId);
+            activeTab.classList.add('tab-active');
+            activeTab.classList.remove('text-on-secondary-container');
+        }
+
+        function toggleMeaning(card) {
+            const meaning = card.querySelector('.meaning-mask');
+            if (meaning.classList.contains('meaning-mask')) {
+                meaning.classList.remove('meaning-mask');
+                meaning.style.filter = 'none';
+                meaning.style.opacity = '1';
+            } else {
+                meaning.classList.add('meaning-mask');</script></body></html>

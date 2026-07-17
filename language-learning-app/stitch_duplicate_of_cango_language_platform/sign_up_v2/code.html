@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>CanGo - Create Account</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Manrope:wght@600;700&amp;family=JetBrains+Mono:wght@500&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .glow-effect {
+            box-shadow: 0 0 40px 10px rgba(19, 27, 46, 0.03);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed": "#d3e4fe",
+                        "surface-container-high": "#e2e7ff",
+                        "on-surface": "#131b2e",
+                        "on-primary-fixed": "#111c2d",
+                        "on-error-container": "#93000a",
+                        "error": "#ba1a1a",
+                        "inverse-on-surface": "#eef0ff",
+                        "on-background": "#131b2e",
+                        "error-container": "#ffdad6",
+                        "surface-dim": "#d2d9f4",
+                        "on-secondary-fixed": "#0b1c30",
+                        "outline-variant": "#c5c6cd",
+                        "secondary": "#505f76",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#d8e3fb",
+                        "surface-container-highest": "#dae2fd",
+                        "on-surface-variant": "#45474c",
+                        "outline": "#75777d",
+                        "surface-bright": "#faf8ff",
+                        "surface": "#faf8ff",
+                        "secondary-container": "#d0e1fb",
+                        "on-secondary-fixed-variant": "#38485d",
+                        "secondary-fixed-dim": "#b7c8e1",
+                        "surface-container-lowest": "#ffffff",
+                        "primary": "#091426",
+                        "on-primary-container": "#8590a6",
+                        "on-primary": "#ffffff",
+                        "tertiary-container": "#26292b",
+                        "tertiary-fixed-dim": "#c4c7c9",
+                        "tertiary": "#111516",
+                        "on-error": "#ffffff",
+                        "background": "#faf8ff",
+                        "on-tertiary-container": "#8d9092",
+                        "tertiary-fixed": "#e0e3e5",
+                        "surface-container-low": "#f2f3ff",
+                        "surface-tint": "#545f73",
+                        "surface-container": "#eaedff",
+                        "primary-fixed-dim": "#bcc7de",
+                        "primary-container": "#1e293b",
+                        "on-primary-fixed-variant": "#3c475a",
+                        "on-tertiary-fixed": "#191c1e",
+                        "inverse-primary": "#bcc7de",
+                        "surface-variant": "#dae2fd",
+                        "on-secondary-container": "#54647a",
+                        "inverse-surface": "#283044",
+                        "on-tertiary-fixed-variant": "#444749",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "margin-mobile": "16px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "max-width": "1280px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Manrope"],
+                        "body-md": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "display-lg-mobile": ["Manrope"],
+                        "display-lg": ["Manrope"],
+                        "label-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-sm": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col overflow-x-hidden selection:bg-secondary-container selection:text-on-secondary-container">
+<header class="relative z-10 w-full flex flex-col items-center py-12">
+<img alt="CanGo Brand Mark" class="w-16 h-16 object-contain mb-4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD31-UOXecPfsRAm-JvoqlnA9iZ7Hk97Fryse3mkkZKKAiKuiNEOiCbEr12Iqf1vdiW36l9Mw2Llvee2oy349RXhTGY21GBoZiQbDQCwmPkjVWcjESa0U7lY_8iqi0-i0IJUVd6SRK58yPV3RTTyew6agSTQV77zsfKzWqAKTGtqYzwwdy6-ys1-OX4nvxXm32tvuFZ6YZ6zvxLXMvQb1ZxEGsWjSeSihAa-ZivfzMevw0Es-ai8VnLDP51O8uPyWBxF53_rS1i3w"/>
+<h1 class="font-headline-md text-headline-md font-extrabold tracking-tight text-primary">CanGo</h1>
+</header>
+<main class="relative z-10 flex-grow flex items-center justify-center px-margin-mobile md:px-0 pb-16">
+<div class="w-full max-w-md">
+<!-- Auth Container Card -->
+<div class="bg-surface-container-lowest rounded-full p-8 md:p-12 shadow-xl border border-outline-variant/30 glow-effect">
+<div class="text-center mb-10">
+<h2 class="font-display-lg-mobile md:text-headline-md text-on-surface mb-2">Create your account</h2>
+<p class="font-body-md text-on-surface-variant">Unlock your linguistic potential today.</p>
+</div>
+<div class="space-y-4">
+<!-- Google Button -->
+<button class="w-full h-14 flex items-center justify-center gap-4 bg-surface-container-highest border border-outline-variant rounded-xl font-body-md font-semibold text-on-surface transition-all duration-200 hover:bg-surface-variant active:scale-[0.98] focus:ring-2 focus:ring-primary focus:outline-none">
+<img alt="Google logo" class="w-5 h-5" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_nGCAIpfvlDLelaFNahankR3G13cgy4zQPlIrbm1fkBF1JxWmDGnEeJLAbR9xCDAP47lOHPU-Loxy1df9I2GC143-fNGv2esy-oFWRLIMd5wGPBSGRKTI2KBnqEK7Y7aKso_irMACfG8W2_jXYjhn9N-aAJ2FNoNDsTdfhcfxW1SBGl2XkTtKLElYjqws6r7ROQfyNy6WfI5jJ_vlgW-cdD4lc9MtkfHSLEib979bIquJeM59HnjyKAnnv0dn_loYWUxM5V9PzA"/>
+<span>Continue with Google</span>
+</button>
+<!-- Email Button -->
+<button class="w-full h-14 flex items-center justify-center gap-4 bg-primary text-on-primary rounded-xl font-body-md font-semibold transition-all duration-200 hover:bg-primary-container active:scale-[0.98] focus:ring-2 focus:ring-primary-fixed focus:outline-none shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl">mail</span>
+<span>Continue with Email</span>
+</button>
+</div>
+<!-- Login Option -->
+<div class="mt-8 text-center">
+<p class="font-body-md text-on-surface-variant">
+                    Already have an account? 
+                    <a class="text-primary font-bold hover:underline ml-1" href="#">Log In</a>
+</p>
+</div>
+<div class="mt-10 pt-8 border-t border-outline-variant/20">
+<p class="font-label-sm text-on-surface-variant text-center leading-relaxed">
+                    By signing up, you agree to our <br/>
+<a class="text-primary font-bold hover:underline" href="#">Terms</a> and <a class="text-primary font-bold hover:underline" href="#">Privacy Policy</a>.
+                </p>
+</div>
+</div>
+<!-- Visual Anchor -->
+<div class="mt-12 flex justify-center opacity-40">
+<div class="flex items-center gap-3">
+<div class="w-1.5 h-1.5 rounded-full bg-primary"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-primary/40"></div>
+<div class="w-1.5 h-1.5 rounded-full bg-primary/20"></div>
+</div>
+</div>
+</div>
+</main>
+<footer class="relative z-10 py-8 text-center">
+<p class="font-label-sm text-outline">© 2024 CanGo Education. All rights reserved.</p>
+</footer>
+<script>
+    document.querySelectorAll('button').forEach(button => {
+        button.addEventListener('mouseenter', () => {
+            // Interactive feedback logic
+        });
+    });
+</script>
+</body></html>
