@@ -13,7 +13,9 @@ export const metadata: Metadata = {
     title: "CanGo",
   },
   icons: {
-    apple: "/icons/icon.svg",
+    apple: [
+      { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 

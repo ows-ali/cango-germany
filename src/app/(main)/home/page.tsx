@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useContent } from "@/lib/content-context";
+import { InstallPrompt } from "@/components/InstallPrompt";
 
 interface Scenario {
   id: number;
@@ -51,6 +52,8 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-[1280px] mx-auto px-margin-mobile py-6 pb-24">
+        <InstallPrompt />
+
         <section className="mb-8">
           <h1 className="font-headline text-3xl md:text-4xl text-on-surface mb-1">Guten Morgen!</h1>
           <p className="text-lg text-on-surface">Ready to master your German scenarios today?</p>
