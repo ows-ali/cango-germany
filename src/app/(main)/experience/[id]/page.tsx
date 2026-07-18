@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { useStats } from "@/lib/stats-context";
 
 interface TranscriptLine {
   id: number; germanText: string; englishText: string;
@@ -40,6 +41,7 @@ const TAB_LABELS: Record<string, string> = {
 export default function ExperiencePlayerPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const { refreshStats } = useStats();
   const { data: session } = useSession();
   const [data, setData] = useState<ExperienceData | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
@@ -56,6 +58,7 @@ export default function ExperiencePlayerPage() {
   const [xpEarned, setXpEarned] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [bonusDone, setBonusDone] = useState(false);
   const [progress, setProgress] = useState<{ completed: boolean; lessonXpClaimed: boolean; bonusXpClaimed: boolean } | null>(null);
   const waveformRef = useRef<HTMLDivElement>(null);
@@ -132,17 +135,24 @@ export default function ExperiencePlayerPage() {
     }
   }, [data]);
 
-  const speakGerman = useCallback(() => {
+  const togglePlay = useCallback(() => {
     if (!data) return;
+    if (isPlaying) {
+      speechSynthesis.cancel();
+      setIsPlaying(false);
+      return;
+    }
     const text = data.transcripts.map((t) => t.germanText).join(" ");
     if ("speechSynthesis" in window) {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.lang = "de-DE";
       utterance.rate = 0.85;
+      utterance.onend = () => setIsPlaying(false);
       speechSynthesis.cancel();
       speechSynthesis.speak(utterance);
+      setIsPlaying(true);
     }
-  }, [data]);
+  }, [data, isPlaying]);
 
   // Per-tab completion (derived before early return so hooks stay ordered)
   const vocabChallengeDone = vocabMatchPairs.length > 0 && vocabMatchPairs.every((p) => p.matched);
@@ -224,6 +234,7 @@ export default function ExperiencePlayerPage() {
     Promise.all([p1, p2]).then(([res]) => {
       setXpEarned(res.lessonXpAwarded);
       setCompleted(true);
+      refreshStats();
     }).catch(() => setCompleting(false));
   }
 
@@ -283,8 +294,8 @@ export default function ExperiencePlayerPage() {
               <span className="text-xs text-on-surface-variant">0:00</span>
               <div className="flex items-center gap-6">
                 <button className="material-symbols-outlined text-on-surface-variant hover:text-primary">replay_10</button>
-                <button onClick={speakGerman} className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all">
-                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
+                <button onClick={togglePlay} className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center hover:opacity-90 transition-all">
+                  <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>{isPlaying ? "pause" : "play_arrow"}</span>
                 </button>
                 <button className="material-symbols-outlined text-on-surface-variant hover:text-primary">forward_30</button>
               </div>

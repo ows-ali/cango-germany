@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useStats } from "@/lib/stats-context";
 
 interface ScenarioData {
   id: number;
@@ -37,18 +38,32 @@ const HERO_IMAGES: Record<string, string> = {
 export default function ScenarioDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data: session } = useSession();
+  const { refreshStats } = useStats();
   const [data, setData] = useState<ScenarioData | null>(null);
   const [activeLevel, setActiveLevel] = useState(2);
+  const [expProgress, setExpProgress] = useState<Record<number, { completed: boolean; lessonXpClaimed: boolean; bonusXpClaimed: boolean }>>({});
 
   useEffect(() => {
     fetch("/api/content").then((r) => r.json()).then((all) => {
       const found = all.find((s: { slug: string }) => s.slug === slug);
       setData(found || null);
+      // After data loads, collect all experience IDs and fetch progress
+      const expIds = new Set<number>();
+      found?.levels?.forEach((l: { modules: { experiences: { id: number }[] }[] }) =>
+        l.modules.forEach((m: { experiences: { id: number }[] }) =>
+          m.experiences.forEach((e: { id: number }) => expIds.add(e.id))
+        )
+      );
+      if (expIds.size > 0) {
+        fetch(`/api/user/experience/progress/batch?ids=${[...expIds].join(",")}`)
+          .then((r) => r.json()).then(setExpProgress).catch(() => {});
+      }
     }).catch(() => {});
     if (session?.user?.id) {
       fetch("/api/user/profile").then((r) => r.json()).then((u) => {
         if (u.cefrLevel && LEVEL_MAP[u.cefrLevel]) setActiveLevel(LEVEL_MAP[u.cefrLevel]);
       }).catch(() => {});
+      refreshStats();
     }
   }, [slug, session]);
 
@@ -93,7 +108,12 @@ export default function ScenarioDetailPage() {
               <div className="flex-1 max-w-xs h-1.5 bg-white/20 rounded-full overflow-hidden">
                 <div className="w-0 h-full bg-white rounded-full" />
               </div>
-              <span className="text-xs text-white/90">0/{currentLevel?.modules.reduce((sum, m) => sum + m.experiences.length, 0) || 0} Experiences</span>
+                <span className="text-xs text-white/90">
+                  {currentLevel?.modules.reduce((sum, m) =>
+                    sum + m.experiences.filter((e) => expProgress[e.id]?.completed).length, 0
+                  ) || 0}
+                  /{currentLevel?.modules.reduce((sum, m) => sum + m.experiences.length, 0) || 0} Experiences
+                </span>
             </div>
           </div>
         </div>
@@ -133,22 +153,35 @@ export default function ScenarioDetailPage() {
                 </span>
               </button>
               <div className={`px-4 pb-6 space-y-3 ${idx !== 0 ? "hidden" : ""}`}>
-                {mod.experiences.map((exp) => (
-                  <Link
-                    key={exp.id}
-                    href={`/experience/${exp.id}`}
-                    className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg border border-outline-variant/30 hover:border-primary transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-primary">play_circle</span>
-                      <span className="text-sm font-medium text-on-surface">{exp.title}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-on-surface-variant">{exp.duration}</span>
-                      <span className="bg-primary text-white text-xs px-3 py-1 rounded-full font-semibold">START</span>
-                    </div>
-                  </Link>
-                ))}
+                {mod.experiences.map((exp) => {
+                  const prog = expProgress[exp.id];
+                  const isCompleted = prog?.completed;
+                  const hasBonus = prog?.bonusXpClaimed;
+                  return (
+                    <Link
+                      key={exp.id}
+                      href={`/experience/${exp.id}`}
+                      className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg border border-outline-variant/30 hover:border-primary transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={`material-symbols-outlined ${hasBonus ? "text-amber-500" : isCompleted ? "text-on-surface-variant" : "text-primary"}`}
+                          style={hasBonus ? { fontVariationSettings: "'FILL' 1" } : undefined}
+                        >
+                          {hasBonus ? "crown" : isCompleted ? "crown" : "play_circle"}
+                        </span>
+                        <span className="text-sm font-medium text-on-surface">{exp.title}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-on-surface-variant">{exp.duration}</span>
+                        {isCompleted ? (
+                          <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-semibold">DONE</span>
+                        ) : (
+                          <span className="bg-primary text-white text-xs px-3 py-1 rounded-full font-semibold">START</span>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}

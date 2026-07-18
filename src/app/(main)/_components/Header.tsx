@@ -1,22 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
-
-interface Stats {
-  totalXp: number;
-  currentStreak: number;
-}
+import { useStats } from "@/lib/stats-context";
 
 export default function Header() {
-  const { data: session } = useSession();
-  const [stats, setStats] = useState<Stats>({ totalXp: 0, currentStreak: 0 });
-
-  useEffect(() => {
-    if (session?.user?.id) {
-      fetch("/api/user/stats").then((r) => r.json()).then(setStats).catch(() => {});
-    }
-  }, [session]);
+  const { stats } = useStats();
 
   return (
     <header className="bg-surface sticky top-0 z-40 border-b border-surface-container">
