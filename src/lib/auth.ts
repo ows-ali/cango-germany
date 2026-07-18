@@ -1,9 +1,12 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { db } from "./db";
-import { users } from "./db/schema";
-import { eq } from "drizzle-orm";
+import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -21,21 +24,33 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!email || !password) return null;
 
         if (mode === "signup") {
-          const existing = await db.select().from(users).where(eq(users.email, email)).limit(1);
-          if (existing.length > 0) return null;
+          const { data: existing } = await supabase
+            .from("users")
+            .select("id")
+            .eq("email", email)
+            .maybeSingle();
+          if (existing) return null;
 
           const passwordHash = await bcrypt.hash(password, 10);
           const id = crypto.randomUUID();
-          await db.insert(users).values({ id, email, name: email.split("@")[0], passwordHash });
+          await supabase.from("users").insert({
+            id,
+            email,
+            name: email.split("@")[0],
+            password_hash: passwordHash,
+          });
 
           return { id, email, name: email.split("@")[0] };
         }
 
-        const result = await db.select().from(users).where(eq(users.email, email)).limit(1);
-        const user = result[0];
-        if (!user || !user.passwordHash) return null;
+        const { data: user } = await supabase
+          .from("users")
+          .select("*")
+          .eq("email", email)
+          .maybeSingle();
+        if (!user || !user.password_hash) return null;
 
-        const valid = await bcrypt.compare(password, user.passwordHash);
+        const valid = await bcrypt.compare(password, user.password_hash);
         if (!valid) return null;
 
         return { id: user.id, email: user.email, name: user.name };
