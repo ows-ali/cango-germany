@@ -1,3 +1,4 @@
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "../src/lib/db";
 import {
   languages, scenarios, levels, scenarioLevels, modules, experiences,
@@ -9,31 +10,30 @@ async function main() {
   console.log("🌱 Seeding CanGo content...\n");
 
   // ── Languages ──
-  await db.insert(languages).values([{ id: 1, name: "German", code: "de" }]);
+  await db.insert(languages).values([{ id: 1, name: "German", code: "de" }]).onConflictDoNothing();
 
   // ── Levels ──
   await db.insert(levels).values([
     { id: 1, name: "A2", order: 1 },
     { id: 2, name: "B1", order: 2 },
     { id: 3, name: "B2", order: 3 },
-  ]);
+  ]).onConflictDoNothing();
 
   // ── Scenarios ──
   await db.insert(scenarios).values([
     { id: 1, languageId: 1, name: "Transportation", slug: "transportation", description: "Tickets, delays, and navigating German public transport", order: 1 },
     { id: 2, languageId: 1, name: "Doctor & Healthcare", slug: "doctor", description: "Appointments, symptoms, and pharmacy visits", order: 2 },
     { id: 3, languageId: 1, name: "Job Interview", slug: "job-interview", description: "Professional communication and interview preparation", order: 3 },
-  ]);
+  ]).onConflictDoNothing();
 
   // ── Scenario Levels (all 3 scenarios × all 3 levels) ──
   const slValues = [];
-  let slId = 1;
   for (let s = 1; s <= 3; s++) {
     for (let l = 1; l <= 3; l++) {
-      slValues.push({ id: slId++, scenarioId: s, levelId: l });
+      slValues.push({ id: (s - 1) * 3 + l, scenarioId: s, levelId: l });
     }
   }
-  await db.insert(scenarioLevels).values(slValues);
+  await db.insert(scenarioLevels).values(slValues).onConflictDoNothing();
 
   // ── Modules ──
   const moduleData: { id: number; scenarioLevelId: number; title: string; order: number }[] = [];
@@ -74,36 +74,41 @@ async function main() {
       moduleData.push({ id: modId++, scenarioLevelId: baseSL, title: t, order: t === titles[0] ? 1 : 2 });
     }
   }
-  await db.insert(modules).values(moduleData);
+  await db.insert(modules).values(moduleData).onConflictDoNothing();
 
   // ── Experiences + Transcripts + Questions + Challenges ──
-  const expValues: typeof experiences.$inferInsert[] = [];
-  const transValues: typeof transcriptLines.$inferInsert[] = [];
-  const wordInsertValues: (typeof words.$inferInsert)[] = [];
-  const expWordValues: { experienceId: number; wordId: number }[] = [];
-  const qValues: typeof questions.$inferInsert[] = [];
-  const qoValues: typeof questionOptions.$inferInsert[] = [];
-  const chValues: typeof challenges.$inferInsert[] = [];
-  const ciValues: typeof challengeItems.$inferInsert[] = [];
 
-  let expId = 1;
-  let transId = 1;
-  let wordId = 1;
-  let qId = 1;
-  let qoId = 1;
-  let chId = 1;
-  let ciId = 1;
-
-  // Helper: register a word + link to experience
-  function addWord(german: string, english: string, article?: string, plural?: string, exp?: number) {
-    const id = wordId++;
-    wordInsertValues.push({ id, germanWord: german, englishTranslation: english, article, plural });
-    if (exp) expWordValues.push({ experienceId: exp, wordId: id });
-    return id;
+  // Sync serial sequences (previous seed used explicit IDs, so sequences may be stale)
+  const seqs = [
+    "challenges_id_seq", "challenge_items_id_seq", "questions_id_seq",
+    "question_options_id_seq", "transcript_lines_id_seq", "words_id_seq"
+  ];
+  for (const seq of seqs) {
+    const table = seq.replace("_id_seq", "");
+    await db.execute(sql`SELECT setval('${sql.raw(seq)}', COALESCE((SELECT MAX(id) FROM ${sql.identifier(table)}), 0) + 1, false)`);
   }
 
-  // Helper: insert experience with transcripts, words, questions, matching, challenges
-  function addExperience(
+  // Helper: upsert word + link to experience
+  async function addWord(german: string, english: string, article?: string, plural?: string, exp?: number) {
+    const existing = await db.select({ id: words.id }).from(words)
+      .where(eq(words.germanWord, german)).limit(1);
+    if (existing.length > 0) {
+      if (exp) {
+        await db.insert(experienceWords).values({ experienceId: exp, wordId: existing[0].id }).onConflictDoNothing();
+      }
+      return existing[0].id;
+    }
+    const [result] = await db.insert(words).values({
+      germanWord: german, englishTranslation: english, article, plural,
+    }).returning({ id: words.id });
+    if (exp) {
+      await db.insert(experienceWords).values({ experienceId: exp, wordId: result.id });
+    }
+    return result.id;
+  }
+
+  // Helper: upsert experience with transcripts, words, questions, matching, challenges
+  async function addExperience(
     moduleId: number, title: string, level: number, scenario: string,
     lines: { de: string; en: string }[],
     vocab: { de: string; en: string; article?: string; plural?: string }[],
@@ -113,71 +118,100 @@ async function main() {
     extraVocabPairs?: { de: string; en: string }[],
     manualVocabMatchItems?: { text: string; translation: string; correctValue: string }[],
   ) {
-    const eid = expId++;
     const durs = ["1:15", "1:45", "2:00", "2:30", "3:00"];
-    expValues.push({
-      id: eid, moduleId, title, order: (expId - 1) % 3 + 1,
-      xpReward: 50, duration: durs[Math.floor(Math.random() * durs.length)],
-      description: `${scenario} — ${level === 1 ? "A2" : level === 2 ? "B1" : "B2"}`,
-    });
+    const desc = `${scenario} — ${level === 1 ? "A2" : level === 2 ? "B1" : "B2"}`;
 
-    // Transcript lines
-    lines.forEach((l, i) => {
-      transValues.push({ id: transId++, experienceId: eid, order: i + 1, germanText: l.de, englishText: l.en });
-    });
+    // Check if experience already exists
+    const existing = await db.select({ id: experiences.id }).from(experiences)
+      .where(and(eq(experiences.moduleId, moduleId), eq(experiences.title, title)))
+      .limit(1);
 
-    // Vocabulary
-    vocab.forEach(v => addWord(v.de, v.en, v.article, v.plural, eid));
+    let eid: number;
+    if (existing.length > 0) {
+      eid = existing[0].id;
+      // Delete existing child data (no user progress references these)
+      const chIds = (await db.select({ id: challenges.id }).from(challenges)
+        .where(eq(challenges.experienceId, eid))).map(c => c.id);
+      if (chIds.length > 0) {
+        await db.delete(challengeItems).where(inArray(challengeItems.challengeId, chIds));
+        await db.delete(challenges).where(eq(challenges.experienceId, eid));
+      }
+      const qIds = (await db.select({ id: questions.id }).from(questions)
+        .where(eq(questions.experienceId, eid))).map(q => q.id);
+      if (qIds.length > 0) {
+        await db.delete(questionOptions).where(inArray(questionOptions.questionId, qIds));
+        await db.delete(questions).where(eq(questions.experienceId, eid));
+      }
+      await db.delete(transcriptLines).where(eq(transcriptLines.experienceId, eid));
+      await db.delete(experienceWords).where(eq(experienceWords.experienceId, eid));
 
-    // MCQs
-    mcqs.forEach((mcq, i) => {
-      const qid = qId++;
-      qValues.push({ id: qid, experienceId: eid, type: "MCQ", questionText: mcq.de, englishTranslation: mcq.en, order: i + 1 });
-      mcq.options.forEach(opt => {
-        qoValues.push({ id: qoId++, questionId: qid, germanText: opt.de, englishText: opt.en, correct: opt.correct });
-      });
-    });
-
-    // Matching (stored as question type MATCHING)
-    if (matchingPairs.length > 0) {
-      const mid = qId++;
-      qValues.push({ id: mid, experienceId: eid, type: "MATCHING", questionText: "Verbinden Sie die Wörter", englishTranslation: "Match the words", order: mcqs.length + 1 });
-      matchingPairs.forEach(p => {
-        qoValues.push({ id: qoId++, questionId: mid, germanText: p.de, englishText: p.en, correct: false });
-      });
+      await db.update(experiences).set({
+        moduleId, title,
+        order: 1, duration: durs[Math.floor(Math.random() * durs.length)],
+        xpReward: 50, description: desc,
+      }).where(eq(experiences.id, eid));
+    } else {
+      const [result] = await db.insert(experiences).values({
+        moduleId, title,
+        order: 1, duration: durs[Math.floor(Math.random() * durs.length)],
+        xpReward: 50, description: desc,
+      }).returning({ id: experiences.id });
+      eid = result.id;
     }
 
-    // Challenge 1: ARRANGE_DIALOGUE — auto from transcript lines
-    const arrangeCid = chId++;
-    chValues.push({ id: arrangeCid, experienceId: eid, type: "ARRANGE_DIALOGUE" });
-    lines.forEach((l, i) => {
-      ciValues.push({ id: ciId++, challengeId: arrangeCid, text: l.de, order: i + 1 });
-    });
+    // Transcript lines
+    const transVals: (typeof transcriptLines.$inferInsert)[] = [];
+    lines.forEach((l, i) => transVals.push({ experienceId: eid, order: i + 1, germanText: l.de, englishText: l.en }));
+    if (transVals.length) await db.insert(transcriptLines).values(transVals);
 
-    // Challenge 2: VOCAB_MATCH — from manual items or auto from matchingPairs + extra, always 5 pairs
-    const vocabCid = chId++;
-    chValues.push({ id: vocabCid, experienceId: eid, type: "VOCAB_MATCH" });
+    // Vocabulary
+    for (const v of vocab) await addWord(v.de, v.en, v.article, v.plural, eid);
+
+    // MCQs
+    for (let i = 0; i < mcqs.length; i++) {
+      const [q] = await db.insert(questions).values({
+        experienceId: eid, type: "MCQ", questionText: mcqs[i].de, englishTranslation: mcqs[i].en, order: i + 1,
+      }).returning({ id: questions.id });
+      await db.insert(questionOptions).values(
+        mcqs[i].options.map(o => ({ questionId: q.id, germanText: o.de, englishText: o.en, correct: o.correct }))
+      );
+    }
+
+    // Matching
+    if (matchingPairs.length > 0) {
+      const [m] = await db.insert(questions).values({
+        experienceId: eid, type: "MATCHING", questionText: "Verbinden Sie die Wörter",
+        englishTranslation: "Match the words", order: mcqs.length + 1,
+      }).returning({ id: questions.id });
+      await db.insert(questionOptions).values(
+        matchingPairs.map(p => ({ questionId: m.id, germanText: p.de, englishText: p.en, correct: false }))
+      );
+    }
+
+    // Challenge 1: ARRANGE_DIALOGUE
+    const [ac] = await db.insert(challenges).values({ experienceId: eid, type: "ARRANGE_DIALOGUE" }).returning({ id: challenges.id });
+    await db.insert(challengeItems).values(lines.map((l, i) => ({ challengeId: ac.id, text: l.de, order: i + 1 })));
+
+    // Challenge 2: VOCAB_MATCH
+    const [vc] = await db.insert(challenges).values({ experienceId: eid, type: "VOCAB_MATCH" }).returning({ id: challenges.id });
     if (manualVocabMatchItems) {
-      manualVocabMatchItems.forEach(ci => {
-        ciValues.push({ id: ciId++, challengeId: vocabCid, text: ci.text, translation: ci.translation, correctValue: ci.correctValue });
-      });
+      await db.insert(challengeItems).values(manualVocabMatchItems.map(ci => ({ challengeId: vc.id, text: ci.text, translation: ci.translation, correctValue: ci.correctValue })));
     } else {
       const allPairs = [...matchingPairs, ...(extraVocabPairs || [])];
       const targetPairs = allPairs.slice(0, 5);
-      while (targetPairs.length < 5) {
-        targetPairs.push({ de: `Wort ${targetPairs.length + 1}`, en: `Word ${targetPairs.length + 1}` });
-      }
-      targetPairs.forEach((pair, i) => {
-        ciValues.push({ id: ciId++, challengeId: vocabCid, text: pair.de, translation: pair.en, correctValue: `pair_${i}` });
-      });
+      while (targetPairs.length < 5) targetPairs.push({ de: `Wort ${targetPairs.length + 1}`, en: `Word ${targetPairs.length + 1}` });
+      await db.insert(challengeItems).values(targetPairs.map((pair, i) => ({ challengeId: vc.id, text: pair.de, translation: pair.en, correctValue: `pair_${i}` })));
     }
 
     // Challenge 3: BEST_RESPONSE
-    const brCid = chId++;
-    chValues.push({ id: brCid, experienceId: eid, type: "BEST_RESPONSE", question: bestResponse.question, questionEnglish: bestResponse.questionEnglish });
-    bestResponse.options.forEach((opt, i) => {
-      ciValues.push({ id: ciId++, challengeId: brCid, text: opt.text, translation: opt.translation, order: i + 1, correctValue: opt.correct ? "correct" : "wrong" });
-    });
+    const [bc] = await db.insert(challenges).values({
+      experienceId: eid, type: "BEST_RESPONSE",
+      question: bestResponse.question, questionEnglish: bestResponse.questionEnglish,
+    }).returning({ id: challenges.id });
+    await db.insert(challengeItems).values(bestResponse.options.map((opt, i) => ({
+      challengeId: bc.id, text: opt.text, translation: opt.translation,
+      order: i + 1, correctValue: opt.correct ? "correct" : "wrong",
+    })));
   }
 
   // ========================================
@@ -186,7 +220,7 @@ async function main() {
 
   // ── A2 Modules (id 1,2) ──
   // Module 1: Buying a Ticket
-  addExperience(1, "Buying a Ticket at the Counter", 1, "Transportation",
+  await addExperience(1, "Buying a Ticket at the Counter", 1, "Transportation",
     [
       { de: "Guten Tag, ich möchte eine Fahrkarte nach Berlin kaufen.", en: "Hello, I'd like to buy a ticket to Berlin." },
       { de: "Einfach oder hin und zurück?", en: "One-way or round trip?" },
@@ -207,7 +241,7 @@ async function main() {
     ] },
   );
 
-  addExperience(1, "Asking for a Discount Card", 1, "Transportation",
+  await addExperience(1, "Asking for a Discount Card", 1, "Transportation",
     [
       { de: "Haben Sie eine Bahncard?", en: "Do you have a Bahncard?" },
       { de: "Nein, noch nicht. Kann ich eine beantragen?", en: "No, not yet. Can I apply for one?" },
@@ -228,7 +262,7 @@ async function main() {
     ] },
   );
 
-  addExperience(1, "Buying a Ticket from the Machine", 1, "Transportation",
+  await addExperience(1, "Buying a Ticket from the Machine", 1, "Transportation",
     [
       { de: "Entschuldigung, wie funktioniert dieser Automat?", en: "Excuse me, how does this machine work?" },
       { de: "Drücken Sie zuerst auf 'Fahrkarte kaufen'.", en: "First press 'Buy ticket'." },
@@ -250,7 +284,7 @@ async function main() {
   );
 
   // Module 2: Finding Your Way (A2)
-  addExperience(2, "Asking for Directions", 1, "Transportation",
+  await addExperience(2, "Asking for Directions", 1, "Transportation",
     [
       { de: "Entschuldigung, wo ist Gleis 5?", en: "Excuse me, where is platform 5?" },
       { de: "Gehen Sie die Treppe hoch und dann nach rechts.", en: "Go up the stairs and then to the right." },
@@ -271,7 +305,7 @@ async function main() {
     ] },
   );
 
-  addExperience(2, "Finding the Right Bus", 1, "Transportation",
+  await addExperience(2, "Finding the Right Bus", 1, "Transportation",
     [
       { de: "Fährt dieser Bus zum Hauptbahnhof?", en: "Does this bus go to the main train station?" },
       { de: "Ja, aber Sie müssen am Alexanderplatz umsteigen.", en: "Yes, but you need to change at Alexanderplatz." },
@@ -298,7 +332,7 @@ async function main() {
     ],
   );
 
-  addExperience(2, "Reading the Departure Board", 1, "Transportation",
+  await addExperience(2, "Reading the Departure Board", 1, "Transportation",
     [
       { de: "Entschuldigung, ich verstehe die Anzeigetafel nicht.", en: "Excuse me, I don't understand the departure board." },
       { de: "Welchen Zug suchen Sie?", en: "Which train are you looking for?" },
@@ -320,7 +354,7 @@ async function main() {
   );
 
   // ── B1 Modules (id 3,4) ──
-  addExperience(3, "Train Delay Announcement", 2, "Transportation",
+  await addExperience(3, "Train Delay Announcement", 2, "Transportation",
     [
       { de: "Achtung, eine Durchsage für die Reisenden.", en: "Attention, an announcement for travelers." },
       { de: "Der ICE 782 nach München hat voraussichtlich 20 Minuten Verspätung.", en: "ICE 782 to Munich is预计 to be 20 minutes late." },
@@ -341,7 +375,7 @@ async function main() {
     ] },
   );
 
-  addExperience(3, "Cancelled Train — Finding Alternatives", 2, "Transportation",
+  await addExperience(3, "Cancelled Train — Finding Alternatives", 2, "Transportation",
     [
       { de: "Meine Damen und Herren, der IC 208 nach Stuttgart fällt heute aus.", en: "Ladies and gentlemen, IC 208 to Stuttgart is cancelled today." },
       { de: "Bitte begeben Sie sich zu Gleis 4. Dort wartet ein Ersatzzug.", en: "Please proceed to platform 4. A replacement train is waiting there." },
@@ -362,7 +396,7 @@ async function main() {
     ] },
   );
 
-  addExperience(3, "Understanding Platform Changes", 2, "Transportation",
+  await addExperience(3, "Understanding Platform Changes", 2, "Transportation",
     [
       { de: "Aufgrund einer Gleiserneuerung ändert sich die Abfahrtsstelle.", en: "Due to track renovation, the departure point is changing." },
       { de: "Der RE 7 nach Köln fährt heute ab Gleis 12 statt Gleis 8.", en: "RE 7 to Cologne departs from platform 12 instead of platform 8 today." },
@@ -390,7 +424,7 @@ async function main() {
   );
 
   // ── B2 Modules (id 5,6) ──
-  addExperience(5, "Planning a Complex Multi-Leg Trip", 3, "Transportation",
+  await addExperience(5, "Planning a Complex Multi-Leg Trip", 3, "Transportation",
     [
       { de: "Ich muss von Berlin über Frankfurt nach Zürich reisen.", en: "I need to travel from Berlin via Frankfurt to Zurich." },
       { de: "Empfehlen Sie mir eine Route mit möglichst kurzer Umsteigezeit?", en: "Can you recommend a route with the shortest possible transfer time?" },
@@ -411,7 +445,7 @@ async function main() {
     ] },
   );
 
-  addExperience(5, "Handling a Missed Connection", 3, "Transportation",
+  await addExperience(5, "Handling a Missed Connection", 3, "Transportation",
     [
       { de: "Ich habe meinen Anschlusszug verpasst wegen der Verspätung.", en: "I missed my connecting train because of the delay." },
       { de: "Kein Problem. Ich buche Sie kostenlos auf den nächsten Zug um.", en: "No problem. I'll rebook you on the next train for free." },
@@ -432,7 +466,7 @@ async function main() {
     ] },
   );
 
-  addExperience(6, "Lodge a Formal Complaint", 3, "Transportation",
+  await addExperience(6, "Lodge a Formal Complaint", 3, "Transportation",
     [
       { de: "Ich möchte eine Beschwerde einreichen wegen der gestrigen Zugfahrt.", en: "I would like to file a complaint about yesterday's train journey." },
       { de: "Die Klimaanlage im Waggon 3 hat nicht funktioniert.", en: "The air conditioning in carriage 3 was not working." },
@@ -459,7 +493,7 @@ async function main() {
     ],
   );
 
-  addExperience(6, "Negotiating a Better Fare", 3, "Transportation",
+  await addExperience(6, "Negotiating a Better Fare", 3, "Transportation",
     [
       { de: "Ich reise geschäftlich und brauche ein flexibles Ticket.", en: "I'm traveling for business and need a flexible ticket." },
       { de: "Dann empfehle ich das Flexpreis-Ticket. Es kostet 130 Euro.", en: "Then I recommend the flex fare ticket. It costs 130 euros." },
@@ -485,7 +519,7 @@ async function main() {
   // ========================================
 
   // A2 Module 7: Making an Appointment
-  addExperience(7, "Calling the Doctor's Office", 1, "Doctor",
+  await addExperience(7, "Calling the Doctor's Office", 1, "Doctor",
     [
       { de: "Praxis Dr. Müller, guten Tag. Was kann ich für Sie tun?", en: "Dr. Müller's practice, good day. How can I help you?" },
       { de: "Guten Tag, ich möchte einen Termin vereinbaren.", en: "Good day, I'd like to make an appointment." },
@@ -506,7 +540,7 @@ async function main() {
     ] },
   );
 
-  addExperience(7, "Confirming the Appointment", 1, "Doctor",
+  await addExperience(7, "Confirming the Appointment", 1, "Doctor",
     [
       { de: "Ich habe einen Termin für heute um 15:30 Uhr bei Dr. Weber.", en: "I have an appointment today at 3:30 PM with Dr. Weber." },
       { de: "Moment bitte. Ja, ich sehe Sie in der Liste. Sind Sie neu hier?", en: "One moment please. Yes, I see you in the list. Are you new here?" },
@@ -527,7 +561,7 @@ async function main() {
     ] },
   );
 
-  addExperience(7, "Rescheduling an Appointment", 1, "Doctor",
+  await addExperience(7, "Rescheduling an Appointment", 1, "Doctor",
     [
       { de: "Ich muss meinen Termin leider verschieben.", en: "I unfortunately have to reschedule my appointment." },
       { de: "Kein Problem. Welcher Tag würde Ihnen passen?", en: "No problem. Which day would suit you?" },
@@ -549,7 +583,7 @@ async function main() {
   );
 
   // A2 Module 8: Basic Symptoms
-  addExperience(8, "Describing a Headache", 1, "Doctor",
+  await addExperience(8, "Describing a Headache", 1, "Doctor",
     [
       { de: "Guten Tag, Herr Doktor. Mir tut der Kopf weh.", en: "Good day, doctor. I have a headache." },
       { de: "Seit wann haben Sie die Kopfschmerzen?", en: "Since when have you had the headache?" },
@@ -576,7 +610,7 @@ async function main() {
     ],
   );
 
-  addExperience(8, "Telling the Doctor About a Cold", 1, "Doctor",
+  await addExperience(8, "Telling the Doctor About a Cold", 1, "Doctor",
     [
       { de: "Ich habe mich erkältet. Ich huste und habe Schnupfen.", en: "I've caught a cold. I'm coughing and have a runny nose." },
       { de: "Haben Sie Ihre Temperatur gemessen?", en: "Have you taken your temperature?" },
@@ -597,7 +631,7 @@ async function main() {
     ] },
   );
 
-  addExperience(8, "Explaining an Allergy", 1, "Doctor",
+  await addExperience(8, "Explaining an Allergy", 1, "Doctor",
     [
       { de: "Ich bekomme im Frühling immer tränende Augen.", en: "I always get watery eyes in spring." },
       { de: "Das klingt nach einer Allergie. Testen wir das.", en: "That sounds like an allergy. Let's test it." },
@@ -619,7 +653,7 @@ async function main() {
   );
 
   // ── Doctor B1 (Module 9) ──
-  addExperience(9, "Describing Severe Symptoms", 2, "Doctor",
+  await addExperience(9, "Describing Severe Symptoms", 2, "Doctor",
     [
       { de: "Ich habe seit drei Tagen starke Bauchschmerzen.", en: "I've had severe stomach pain for three days." },
       { de: "Wo genau tut es weh? Können Sie zeigen?", en: "Where exactly does it hurt? Can you show me?" },
@@ -646,7 +680,7 @@ async function main() {
     ],
   );
 
-  addExperience(9, "Getting a Referral to a Specialist", 2, "Doctor",
+  await addExperience(9, "Getting a Referral to a Specialist", 2, "Doctor",
     [
       { de: "Ich glaube, ich brauche eine Überweisung zum Hautarzt.", en: "I think I need a referral to a dermatologist." },
       { de: "Was haben Sie für Beschwerden?", en: "What complaints do you have?" },
@@ -667,7 +701,7 @@ async function main() {
     ] },
   );
 
-  addExperience(9, "Understanding a Diagnosis", 2, "Doctor",
+  await addExperience(9, "Understanding a Diagnosis", 2, "Doctor",
     [
       { de: "Die Blutwerte zeigen, dass Sie eine Infektion haben.", en: "The blood test results show you have an infection." },
       { de: "Ist es etwas Ernstes?", en: "Is it something serious?" },
@@ -689,7 +723,7 @@ async function main() {
   );
 
   // ── Doctor B1 Module 10: At the Pharmacy ──
-  addExperience(10, "Asking the Pharmacist for Medicine", 2, "Doctor",
+  await addExperience(10, "Asking the Pharmacist for Medicine", 2, "Doctor",
     [
       { de: "Guten Tag, ich habe ein Rezept vom Arzt.", en: "Good day, I have a prescription from the doctor." },
       { de: "Gerne. Bitte legen Sie Ihre Versicherungskarte dazu.", en: "Certainly. Please put your insurance card with it." },
@@ -710,7 +744,7 @@ async function main() {
     ] },
   );
 
-  addExperience(10, "Buying Painkillers", 2, "Doctor",
+  await addExperience(10, "Buying Painkillers", 2, "Doctor",
     [
       { de: "Ich brauche etwas gegen Kopfschmerzen. Haben Sie eine Empfehlung?", en: "I need something for headaches. Do you have a recommendation?" },
       { de: "Ich empfehle Ibuprofen 400. Das hilft schnell.", en: "I recommend Ibuprofen 400. It works quickly." },
@@ -731,7 +765,7 @@ async function main() {
     ] },
   );
 
-  addExperience(10, "Understanding the Dosage", 2, "Doctor",
+  await addExperience(10, "Understanding the Dosage", 2, "Doctor",
     [
       { de: "Wie oft soll ich den Hustensaft einnehmen?", en: "How often should I take the cough syrup?" },
       { de: "Nehmen Sie dreimal täglich 5 Milliliter.", en: "Take 5 milliliters three times a day." },
@@ -759,7 +793,7 @@ async function main() {
   );
 
   // ── Doctor B2 Module 11: Medical History ──
-  addExperience(11, "Discussing Family Medical History", 3, "Doctor",
+  await addExperience(11, "Discussing Family Medical History", 3, "Doctor",
     [
       { de: "Gibt es in Ihrer Familie erbliche Krankheiten?", en: "Are there hereditary diseases in your family?" },
       { de: "Mein Vater hatte Diabetes und meine Mutter hatte Bluthochdruck.", en: "My father had diabetes and my mother had high blood pressure." },
@@ -780,7 +814,7 @@ async function main() {
     ] },
   );
 
-  addExperience(11, "Preparing for Surgery Consultation", 3, "Doctor",
+  await addExperience(11, "Preparing for Surgery Consultation", 3, "Doctor",
     [
       { de: "Wir haben die Ergebnisse der Magnetresonanztomographie erhalten.", en: "We have received the MRI results." },
       { de: "Das Meniskusriss erfordert einen arthroskopischen Eingriff.", en: "The meniscus tear requires an arthroscopic procedure." },
@@ -801,7 +835,7 @@ async function main() {
     ] },
   );
 
-  addExperience(12, "Requesting a Second Opinion", 3, "Doctor",
+  await addExperience(12, "Requesting a Second Opinion", 3, "Doctor",
     [
       { de: "Ich würde gerne eine Zweitmeinung einholen.", en: "I would like to get a second opinion." },
       { de: "Das ist absolut verständlich. Ich kann Ihnen eine Kollegin empfehlen.", en: "That's completely understandable. I can recommend a colleague." },
@@ -829,7 +863,7 @@ async function main() {
   );
 
   // ── Job Interview A2 Module 13: Self-Introduction ──
-  addExperience(13, "Introducing Yourself", 1, "Job Interview",
+  await addExperience(13, "Introducing Yourself", 1, "Job Interview",
     [
       { de: "Guten Tag, mein Name ist Anna Schmidt.", en: "Good day, my name is Anna Schmidt." },
       { de: "Ich komme aus Spanien und lebe seit zwei Jahren in Berlin.", en: "I come from Spain and have been living in Berlin for two years." },
@@ -850,7 +884,7 @@ async function main() {
     ] },
   );
 
-  addExperience(13, "Talking About Your Current Job", 1, "Job Interview",
+  await addExperience(13, "Talking About Your Current Job", 1, "Job Interview",
     [
       { de: "Was machen Sie beruflich?", en: "What do you do for a living?" },
       { de: "Ich arbeite als Verkäuferin in einem Bekleidungsgeschäft.", en: "I work as a sales assistant in a clothing store." },
@@ -871,7 +905,7 @@ async function main() {
     ] },
   );
 
-  addExperience(13, "Describing Your Strengths", 1, "Job Interview",
+  await addExperience(13, "Describing Your Strengths", 1, "Job Interview",
     [
       { de: "Was sind Ihre Stärken?", en: "What are your strengths?" },
       { de: "Ich bin freundlich und hilfsbereit.", en: "I am friendly and helpful." },
@@ -899,7 +933,7 @@ async function main() {
   );
 
   // ── Job Interview A2 Module 14: First Interview ──
-  addExperience(14, "Answering Simple Questions", 1, "Job Interview",
+  await addExperience(14, "Answering Simple Questions", 1, "Job Interview",
     [
       { de: "Warum möchten Sie bei uns arbeiten?", en: "Why do you want to work with us?" },
       { de: "Weil Ihre Firma einen sehr guten Ruf hat.", en: "Because your company has a very good reputation." },
@@ -920,7 +954,7 @@ async function main() {
     ] },
   );
 
-  addExperience(14, "Asking About the Job", 1, "Job Interview",
+  await addExperience(14, "Asking About the Job", 1, "Job Interview",
     [
       { de: "Können Sie mir mehr über die Stelle erzählen?", en: "Can you tell me more about the position?" },
       { de: "Sie arbeiten im Kundenservice und helfen unseren Kunden.", en: "You work in customer service and help our clients." },
@@ -942,7 +976,7 @@ async function main() {
   );
 
   // ── Job Interview B1 Module 15: Experience & Skills ──
-  addExperience(15, "Presenting Your Work Experience", 2, "Job Interview",
+  await addExperience(15, "Presenting Your Work Experience", 2, "Job Interview",
     [
       { de: "Erzählen Sie mir von Ihrer bisherigen Berufserfahrung.", en: "Tell me about your previous work experience." },
       { de: "Ich habe drei Jahre als Projektassistentin gearbeitet.", en: "I worked for three years as a project assistant." },
@@ -963,7 +997,7 @@ async function main() {
     ] },
   );
 
-  addExperience(15, "Handling Difficult Questions", 2, "Job Interview",
+  await addExperience(15, "Handling Difficult Questions", 2, "Job Interview",
     [
       { de: "Warum haben Sie Ihren letzten Job gekündigt?", en: "Why did you quit your last job?" },
       { de: "Ich wollte mich beruflich weiterentwickeln.", en: "I wanted to develop professionally." },
@@ -984,7 +1018,7 @@ async function main() {
     ] },
   );
 
-  addExperience(16, "Discussing Salary Expectations", 2, "Job Interview",
+  await addExperience(16, "Discussing Salary Expectations", 2, "Job Interview",
     [
       { de: "Welche Gehaltsvorstellungen haben Sie?", en: "What salary expectations do you have?" },
       { de: "Ich habe mich über die übliche Vergütung informiert.", en: "I informed myself about the usual compensation." },
@@ -1006,7 +1040,7 @@ async function main() {
   );
 
   // ── Job Interview B2 Module 17: Salary Negotiation ──
-  addExperience(17, "Negotiating a Higher Salary", 3, "Job Interview",
+  await addExperience(17, "Negotiating a Higher Salary", 3, "Job Interview",
     [
       { de: "Basierend auf meiner Qualifikation und Erfahrung hätte ich 55.000 Euro erwartet.", en: "Based on my qualifications and experience, I would have expected 55,000 euros." },
       { de: "Unser Budget für diese Stelle liegt bei 50.000 Euro.", en: "Our budget for this position is 50,000 euros." },
@@ -1027,7 +1061,7 @@ async function main() {
     ] },
   );
 
-  addExperience(17, "Discussing Contract Details", 3, "Job Interview",
+  await addExperience(17, "Discussing Contract Details", 3, "Job Interview",
     [
       { de: "Ich habe den Arbeitsvertrag erhalten und durchgelesen.", en: "I received the employment contract and read through it." },
       { de: "Haben Sie Fragen zu bestimmten Klauseln?", en: "Do you have questions about specific clauses?" },
@@ -1054,7 +1088,7 @@ async function main() {
     ],
   );
 
-  addExperience(18, "Technical Interview Questions", 3, "Job Interview",
+  await addExperience(18, "Technical Interview Questions", 3, "Job Interview",
     [
       { de: "Wie würden Sie ein Team durch eine schwierige Projektphase führen?", en: "How would you lead a team through a difficult project phase?" },
       { de: "Zuerst würde ich die Probleme identifizieren und priorisieren.", en: "First, I would identify and prioritize the problems." },
@@ -1075,7 +1109,7 @@ async function main() {
     ] },
   );
 
-  addExperience(18, "Closing the Interview", 3, "Job Interview",
+  await addExperience(18, "Closing the Interview", 3, "Job Interview",
     [
       { de: "Haben Sie noch Fragen an uns?", en: "Do you have any more questions for us?" },
       { de: "Ja, wie sieht der Einarbeitungsplan für neue Mitarbeiter aus?", en: "Yes, what does the onboarding plan for new employees look like?" },
@@ -1097,30 +1131,7 @@ async function main() {
   );
 
   // ── INSERT ALL DATA ──
-  console.log("  Inserting experiences...");
-  // Chunk inserts to avoid issues
-  const chunk = <T,>(arr: T[], size: number) => {
-    const chunks: T[][] = [];
-    for (let i = 0; i < arr.length; i += size) chunks.push(arr.slice(i, i + size));
-    return chunks;
-  };
-
-  for (const chunked of chunk(expValues, 10)) await db.insert(experiences).values(chunked);
-  for (const chunked of chunk(transValues, 50)) await db.insert(transcriptLines).values(chunked);
-  for (const chunked of chunk(wordInsertValues, 50)) await db.insert(words).values(chunked);
-  for (const chunked of chunk(expWordValues, 50)) await db.insert(experienceWords).values(chunked);
-  for (const chunked of chunk(qValues, 20)) await db.insert(questions).values(chunked);
-  for (const chunked of chunk(qoValues, 50)) await db.insert(questionOptions).values(chunked);
-  for (const chunked of chunk(chValues, 10)) await db.insert(challenges).values(chunked);
-  for (const chunked of chunk(ciValues, 50)) await db.insert(challengeItems).values(chunked);
-
   console.log("\n✅ Seed complete!");
-  console.log(`  ${expValues.length} experiences`);
-  console.log(`  ${transValues.length} transcript lines`);
-  console.log(`  ${wordInsertValues.length} words`);
-  console.log(`  ${qValues.length} questions`);
-  console.log(`  ${qoValues.length} question options`);
-  console.log(`  ${chValues.length} challenges`);
 }
 
 main().catch(console.error);

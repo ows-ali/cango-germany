@@ -39,6 +39,15 @@ const TAB_LABELS: Record<string, string> = {
   BEST_RESPONSE: "Response",
 };
 
+function shuffle<T>(arr: T[]): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
 export default function ExperiencePlayerPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -84,6 +93,7 @@ export default function ExperiencePlayerPage() {
   const arrangeCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Best Response challenge
+  const [bestShuffled, setBestShuffled] = useState<ChallengeItem[]>([]);
   const [bestResponseSelected, setBestResponseSelected] = useState<number | null>(null);
   const [bestResponseCorrect, setBestResponseCorrect] = useState(false);
 
@@ -110,8 +120,12 @@ export default function ExperiencePlayerPage() {
       }
       const arrangeChal = d.challenges?.find((c: Challenge) => c.type === "ARRANGE_DIALOGUE");
       if (arrangeChal) {
-        setArrangeShuffled([...arrangeChal.items].sort(() => Math.random() - 0.5));
+        setArrangeShuffled(shuffle(arrangeChal.items));
         setArrangeOrder([]);
+      }
+      const bestChal = d.challenges?.find((c: Challenge) => c.type === "BEST_RESPONSE");
+      if (bestChal) {
+        setBestShuffled(shuffle(bestChal.items));
       }
     }).catch(() => { });
   }, [id]);
@@ -558,7 +572,7 @@ export default function ExperiencePlayerPage() {
 
             {activeTab === 2 && (
               <div className="space-y-2">
-                {!bestChallenge || bestChallenge.items.filter((ci) => ci.translation).length === 0 ? (
+                    {bestShuffled.length === 0 ? (
                   <p className="text-xs text-on-surface-variant text-center py-4">No best response available</p>
                 ) : (
                   <>
@@ -571,7 +585,7 @@ export default function ExperiencePlayerPage() {
                       </div>
                     )}
                     <p className="text-xs text-on-surface-variant mb-2">Select the best response:</p>
-                    {bestChallenge.items.map((item, i) => {
+                    {bestShuffled.map((item, i) => {
                       const isSelected = bestResponseSelected === i;
                       const isCorrectItem = item.correctValue === "correct";
                       return (

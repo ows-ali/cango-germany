@@ -30,14 +30,12 @@ npm run db:push
 
 ### 4. Seed Content Data
 
-> **Important**: TRUNCATE all tables in Supabase SQL Editor first to avoid conflicts:
-```sql
-TRUNCATE challenges, matching_pairs, question_options, questions, vocab_words, module_audio, module_sections, modules, scenario_levels, scenarios CASCADE;
-```
-
 ```bash
 npm run seed
 ```
+
+> The seed script is idempotent — it can be run multiple times without errors.
+> Existing experiences are updated in place, preserving user progress data.
 
 ### 5. Generate Audio (Optional)
 
