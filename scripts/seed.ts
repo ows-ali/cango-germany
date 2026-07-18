@@ -40,8 +40,7 @@ async function main() {
   let modId = 1;
   // SC1: Transportation
   for (let l = 1; l <= 3; l++) { // A2, B1, B2
-    const sl = { 1: 1, 2: 2, 3: 3 }[l]!;
-    const baseSL = (l - 1) * 3 + 1;
+    const baseSL = l;
     const titles = l === 1
       ? ["Buying a Ticket", "Finding Your Way"]
       : l === 2
@@ -53,7 +52,7 @@ async function main() {
   }
   // SC2: Doctor
   for (let l = 1; l <= 3; l++) {
-    const baseSL = (l - 1) * 3 + 2;
+    const baseSL = 3 + l;
     const titles = l === 1
       ? ["Making an Appointment", "Basic Symptoms"]
       : l === 2
@@ -65,7 +64,7 @@ async function main() {
   }
   // SC3: Job Interview
   for (let l = 1; l <= 3; l++) {
-    const baseSL = (l - 1) * 3 + 3;
+    const baseSL = 6 + l;
     const titles = l === 1
       ? ["Self-Introduction", "First Interview"]
       : l === 2
