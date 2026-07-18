@@ -1,16 +1,19 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "CanGo — Learn German for Real Life",
   description: "Practice realistic German scenarios for life in Germany",
   manifest: "/manifest.json",
-  themeColor: "#faf8ff",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
     title: "CanGo",
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#faf8ff",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
