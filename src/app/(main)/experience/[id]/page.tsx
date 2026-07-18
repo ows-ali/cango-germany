@@ -56,6 +56,7 @@ export default function ExperiencePlayerPage() {
   const [matchWrong, setMatchWrong] = useState(false);
 
   const [xpEarned, setXpEarned] = useState(false);
+  const [xpThisSession, setXpThisSession] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -187,6 +188,7 @@ export default function ExperiencePlayerPage() {
   const canComplete = allMcqCorrect && matchingComplete;
 
   const isReview = progress?.lessonXpClaimed === true;
+  const bonusClaimed = bonusDone || progress?.bonusXpClaimed;
 
   function handleMcqSelect(qId: number, optionIndex: number, isCorrect: boolean) {
     setMcqSelected((prev) => ({ ...prev, [qId]: optionIndex }));
@@ -223,16 +225,20 @@ export default function ExperiencePlayerPage() {
       body: JSON.stringify({ experienceId: data.id }),
     }).then((r) => r.json());
 
-    const p2 = bonusReady && !isReview
+    const p2 = bonusReady && !bonusClaimed
       ? fetch("/api/user/experience/bonus-complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ experienceId: data.id }),
-      }).then((r) => r.json()).then((res) => { if (res.bonusXpAwarded) setBonusDone(true); })
-      : Promise.resolve();
+      }).then((r) => r.json())
+      : Promise.resolve({ bonusXpAwarded: false });
 
-    Promise.all([p1, p2]).then(([res]) => {
-      setXpEarned(res.lessonXpAwarded);
+    Promise.all([p1, p2]).then(([res1, res2]) => {
+      let earned = 0;
+      if (res1.lessonXpAwarded) earned += 50;
+      if (res2?.bonusXpAwarded) { setBonusDone(true); earned += 20; }
+      setXpThisSession(earned);
+      setXpEarned(earned > 0);
       setCompleted(true);
       refreshStats();
     }).catch(() => setCompleting(false));
@@ -246,8 +252,13 @@ export default function ExperiencePlayerPage() {
             <span className="material-symbols-outlined text-4xl text-white">check</span>
           </div>
           <h2 className="font-headline text-3xl text-on-surface mb-2">Completed!</h2>
-          <p className="text-2xl font-bold text-primary mb-2">+{xpEarned ? (bonusDone ? "70" : "50") : "0"} XP</p>
-          <p className="text-on-surface-variant mb-8">{!xpEarned ? "Reviewing" : "Great job!"}</p>
+          <p className="text-2xl font-bold text-primary mb-2">+{xpThisSession} XP</p>
+          <p className="text-on-surface-variant mb-8">
+            {xpThisSession === 70 ? "Great job with bonus!"
+             : xpThisSession === 50 ? "Great job!"
+             : xpThisSession === 20 ? "Bonus claimed!"
+             : "Reviewing"}
+          </p>
           <button onClick={() => router.push("/home")} className="bg-primary text-on-primary px-8 py-3 rounded-lg font-semibold w-full">
             Back to Home
           </button>
@@ -560,10 +571,21 @@ export default function ExperiencePlayerPage() {
               disabled={!canComplete || completing}
               className="w-full bg-primary text-on-primary py-4 rounded-xl font-semibold text-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all"
             >
-              {completing ? "Completing..." : `Complete Lesson +${bonusReady ? "70" : "50"} XP`}
+            {(() => {
+              let text = "Complete Lesson";
+              if (completing) text = "Completing...";
+              else if (!isReview) text = `Complete Lesson +${bonusReady ? "70" : "50"} XP`;
+              else if (!bonusClaimed && bonusReady) text = "Claim Bonus +20 XP";
+              else if (!bonusClaimed) text = "Review Complete";
+              else text = "Completed \u2713";
+              return text;
+            })()}
             </button>
-            {!bonusReady && !isReview && (
-              <p className="text-xs text-on-surface-variant text-center mt-2">Do bonus for +20 XP</p>
+            {!isReview && !bonusReady && (
+              <p className="text-xs text-on-surface-variant text-center mt-2">Complete the bonus challenge for +20 XP</p>
+            )}
+            {isReview && !bonusClaimed && (
+              <p className="text-xs text-on-surface-variant text-center mt-2">Complete the bonus challenge to claim +20 XP</p>
             )}
           </div>
         </section>

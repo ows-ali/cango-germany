@@ -174,7 +174,9 @@ export default function ScenarioDetailPage() {
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-on-surface-variant">{exp.duration}</span>
                         {isCompleted ? (
-                          <span className="bg-green-100 text-green-700 text-xs px-3 py-1 rounded-full font-semibold">DONE</span>
+                          <span className={`text-xs px-3 py-1 rounded-full font-semibold ${hasBonus ? "bg-amber-100 text-amber-700" : "bg-green-100 text-green-700"}`}>
+                            +{exp.xpReward + (hasBonus ? 20 : 0)} XP
+                          </span>
                         ) : (
                           <span className="bg-primary text-white text-xs px-3 py-1 rounded-full font-semibold">START</span>
                         )}
