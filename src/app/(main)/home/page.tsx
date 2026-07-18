@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface Scenario {
   id: number;
@@ -11,12 +12,21 @@ interface Scenario {
   imageUrl: string | null;
 }
 
+const LEVEL_MAP: Record<string, number> = { A2: 1, B1: 2, B2: 3 };
+
 export default function HomePage() {
+  const { data: session } = useSession();
   const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [userLevel, setUserLevel] = useState<string>("B1");
 
   useEffect(() => {
     fetch("/api/content").then((r) => r.json()).then(setScenarios).catch(() => {});
-  }, []);
+    if (session?.user?.id) {
+      fetch("/api/user/profile").then((r) => r.json()).then((u) => {
+        if (u.cefrLevel) setUserLevel(u.cefrLevel);
+      }).catch(() => {});
+    }
+  }, [session]);
 
   const levelLabels: Record<number, string> = { 1: "A2", 2: "B1", 3: "B2" };
   const icons: Record<string, string> = {
@@ -39,7 +49,7 @@ export default function HomePage() {
               <span className="text-xs font-semibold text-on-surface">500 XP</span>
             </div>
             <div className="flex items-center gap-1 bg-secondary-container px-2 py-1 rounded-full">
-              <span className="text-xs font-semibold text-on-secondary-container">12 🔥</span>
+              <span className="text-xs font-semibold text-on-secondary-container">7 🔥</span>
             </div>
             <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center">
               <span className="material-symbols-outlined text-sm text-on-secondary-container">person</span>
@@ -91,7 +101,7 @@ export default function HomePage() {
                 <div className="h-40 bg-gradient-to-br from-primary-container to-primary relative flex items-center justify-center">
                   <span className="material-symbols-outlined text-6xl text-white/80">{icons[s.slug] || "school"}</span>
                   <div className="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-[10px] font-bold text-primary border border-surface-container">
-                    {levelLabels[2] || "B1"}
+                    {userLevel}
                   </div>
                 </div>
                 <div className="p-4">

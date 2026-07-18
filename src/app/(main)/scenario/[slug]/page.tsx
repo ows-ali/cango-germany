@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 interface ScenarioData {
   id: number;
@@ -26,17 +27,30 @@ interface ScenarioData {
   }[];
 }
 
+const LEVEL_MAP: Record<string, number> = { A2: 1, B1: 2, B2: 3 };
+const HERO_IMAGES: Record<string, string> = {
+  transportation: "/images/scenario-transportation.jpg",
+  doctor: "/images/scenario-doctor.jpg",
+  "job-interview": "/images/scenario-job-interview.jpg",
+};
+
 export default function ScenarioDetailPage() {
   const { slug } = useParams<{ slug: string }>();
+  const { data: session } = useSession();
   const [data, setData] = useState<ScenarioData | null>(null);
-  const [activeLevel, setActiveLevel] = useState(2); // default B1
+  const [activeLevel, setActiveLevel] = useState(2);
 
   useEffect(() => {
     fetch("/api/content").then((r) => r.json()).then((all) => {
       const found = all.find((s: { slug: string }) => s.slug === slug);
       setData(found || null);
     }).catch(() => {});
-  }, [slug]);
+    if (session?.user?.id) {
+      fetch("/api/user/profile").then((r) => r.json()).then((u) => {
+        if (u.cefrLevel && LEVEL_MAP[u.cefrLevel]) setActiveLevel(LEVEL_MAP[u.cefrLevel]);
+      }).catch(() => {});
+    }
+  }, [slug, session]);
 
   if (!data) {
     return (
@@ -52,8 +66,9 @@ export default function ScenarioDetailPage() {
   return (
     <div className="min-h-screen bg-background pb-24 md:pb-0">
       {/* Hero */}
-      <header className="relative h-64 md:h-80 w-full overflow-hidden bg-gradient-to-br from-primary-container to-primary">
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+      <header className="relative h-64 md:h-80 w-full overflow-hidden">
+        <img src={HERO_IMAGES[slug as string] || "/images/onboarding-bg.jpg"} alt={data.name} className="absolute inset-0 w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-black/20" />
         <div className="absolute inset-0 flex flex-col justify-between p-margin-mobile">
           <div className="flex justify-between items-center">
             <Link href="/home" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition-colors">
@@ -86,7 +101,7 @@ export default function ScenarioDetailPage() {
 
       {/* Content */}
       <section className="max-w-[1280px] mx-auto px-margin-mobile py-6">
-        <div className="space-y-4">
+        <div className="space-y-6">
           {currentLevel?.modules.map((mod, idx) => (
             <div key={mod.id} className="bg-white rounded-xl border border-outline-variant/30 overflow-hidden shadow-sm">
               <button
@@ -117,7 +132,7 @@ export default function ScenarioDetailPage() {
                   expand_more
                 </span>
               </button>
-              <div className={`px-4 pb-4 space-y-2 ${idx !== 0 ? "hidden" : ""}`}>
+              <div className={`px-4 pb-6 space-y-3 ${idx !== 0 ? "hidden" : ""}`}>
                 {mod.experiences.map((exp) => (
                   <Link
                     key={exp.id}
