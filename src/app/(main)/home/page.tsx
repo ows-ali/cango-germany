@@ -33,7 +33,7 @@ export default function HomePage() {
     if (status !== "authenticated") return;
     fetch("/api/user/profile").then((r) => r.json()).then((u) => {
       if (u.cefrLevel) setUserLevel(u.cefrLevel);
-    }).catch(() => {});
+    }).catch(() => { });
     if (scenarios.length > 0) {
       const ids = scenarios.map((s) => s.id).join(",");
       fetch(`/api/user/scenario-setting/batch?ids=${ids}`)
@@ -45,7 +45,7 @@ export default function HomePage() {
             if (levelId && REVERSE_LEVEL_MAP[levelId]) map[Number(id)] = REVERSE_LEVEL_MAP[levelId];
           }
           setScenarioLevels(map);
-        }).catch(() => {});
+        }).catch(() => { });
     }
   }, [status, scenarios.length]);
 
@@ -56,7 +56,8 @@ export default function HomePage() {
 
         <section className="mb-8">
           <h1 className="font-headline text-3xl md:text-4xl text-on-surface mb-1">Guten Morgen!</h1>
-          <p className="text-lg text-on-surface">Ready to master your German scenarios today?</p>
+          <p className="text-lg text-on-surface mb-3">Ready to master your next Germany experience today?</p>
+          <p className="text-sm italic underline text-on-surface">Our no experience is locked and never will be.</p>
         </section>
 
         {/* Daily Goal */}
@@ -120,6 +121,13 @@ export default function HomePage() {
               </div>
             </Link>
           ))}
+
+          {/* Coming Soon */}
+          <div className="bg-white rounded-xl overflow-hidden border-2 border-dashed border-outline-variant/50 p-8 text-center">
+            <span className="material-symbols-outlined text-4xl text-outline-variant mb-3">rocket_launch</span>
+            <h4 className="text-lg font-bold text-on-surface mb-1">More Coming Soon</h4>
+            <p className="text-sm text-on-surface-variant">Exciting new scenarios are on the way — stay tuned!</p>
+          </div>
         </section>
       </div>
     </div>

@@ -35,8 +35,8 @@ interface ExperienceData {
 const CHALLENGE_TABS = ["VOCAB_MATCH", "ARRANGE_DIALOGUE", "BEST_RESPONSE"] as const;
 const TAB_LABELS: Record<string, string> = {
   VOCAB_MATCH: "Match",
-  ARRANGE_DIALOGUE: "Dialogue",
-  BEST_RESPONSE: "Response",
+  ARRANGE_DIALOGUE: "Arrange Dialogue",
+  BEST_RESPONSE: "Best Response",
 };
 
 function shuffle<T>(arr: T[]): T[] {
@@ -184,7 +184,7 @@ export default function ExperiencePlayerPage() {
     if (!arrangeChal) return;
     const allPlaced = arrangeOrder.length === arrangeChal.items.length && arrangeOrder.length > 0;
     if (allPlaced && !tabArrangeCompleted && !arrangeWrong) {
-      const isCorrect = arrangeOrder.every((idx, pos) => arrangeChal.items[idx].order === pos + 1);
+      const isCorrect = arrangeOrder.every((idx, pos) => arrangeShuffled[idx]?.order === pos + 1);
       if (isCorrect) {
         setTabArrangeCompleted(true);
       } else {
@@ -196,7 +196,7 @@ export default function ExperiencePlayerPage() {
         }, 1500);
       }
     }
-  }, [arrangeOrder]);
+  }, [arrangeOrder, arrangeShuffled]);
   useEffect(() => {
     if (bestChallengeDone && !tabBestCompleted) setTabBestCompleted(true);
   }, [bestChallengeDone]);
@@ -292,9 +292,9 @@ export default function ExperiencePlayerPage() {
           <p className="text-2xl font-bold text-primary mb-2">+{xpThisSession} XP</p>
           <p className="text-on-surface-variant mb-8">
             {xpThisSession === 70 ? "Great job with bonus!"
-             : xpThisSession === 50 ? "Great job!"
-             : xpThisSession === 20 ? "Bonus claimed!"
-             : "Reviewing"}
+              : xpThisSession === 50 ? "Great job!"
+                : xpThisSession === 20 ? "Bonus claimed!"
+                  : "Reviewing"}
           </p>
           <button onClick={() => router.push("/home")} className="bg-primary text-on-primary px-8 py-3 rounded-lg font-semibold w-full">
             Back to Home
@@ -465,7 +465,8 @@ export default function ExperiencePlayerPage() {
         {/* Bonus Challenge Section - placed after Practice, before Complete button */}
         <section className="max-w-[1200px] mx-auto w-full">
           <div className="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/30">
-            <h4 className="font-headline text-lg text-on-surface mb-3">Bonus Challenge — +20 XP</h4>
+            <h4 className="font-headline text-lg text-on-surface ">Bonus Challenge</h4>
+            <p className=" text-sm text-on-surface mb-3">Do any one challenge and earn upto +20 XP</p>
 
             {/* 3-tab toggle */}
             <div className="flex p-1 bg-surface-container-high rounded-xl gap-1 mb-4">
@@ -572,7 +573,7 @@ export default function ExperiencePlayerPage() {
 
             {activeTab === 2 && (
               <div className="space-y-2">
-                    {bestShuffled.length === 0 ? (
+                {bestShuffled.length === 0 ? (
                   <p className="text-xs text-on-surface-variant text-center py-4">No best response available</p>
                 ) : (
                   <>
@@ -617,15 +618,15 @@ export default function ExperiencePlayerPage() {
               disabled={!canComplete || completing}
               className="w-full bg-primary text-on-primary py-4 rounded-xl font-semibold text-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all"
             >
-            {(() => {
-              let text = "Complete Lesson";
-              if (completing) text = "Completing...";
-              else if (!isReview) text = `Complete Lesson +${bonusReady ? "70" : "50"} XP`;
-              else if (!bonusClaimed && bonusReady) text = "Claim Bonus +20 XP";
-              else if (!bonusClaimed) text = "Review Complete";
-              else text = "Completed \u2713";
-              return text;
-            })()}
+              {(() => {
+                let text = "Complete Lesson";
+                if (completing) text = "Completing...";
+                else if (!isReview) text = `Complete Lesson +${bonusReady ? "70" : "50"} XP`;
+                else if (!bonusClaimed && bonusReady) text = "Claim Bonus +20 XP";
+                else if (!bonusClaimed) text = "Review Complete";
+                else text = "Completed \u2713";
+                return text;
+              })()}
             </button>
             {!isReview && !bonusReady && (
               <p className="text-xs text-on-surface-variant text-center mt-2">Complete the bonus challenge for +20 XP</p>
