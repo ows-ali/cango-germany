@@ -30,58 +30,86 @@ interface ExperienceData {
   transcripts: TranscriptLine[]; questions: Question[]; challenges: Challenge[];
 }
 
+const CHALLENGE_TABS = ["VOCAB_MATCH", "ARRANGE_DIALOGUE", "BEST_RESPONSE"] as const;
+const TAB_LABELS: Record<string, string> = {
+  VOCAB_MATCH: "Match",
+  ARRANGE_DIALOGUE: "Dialogue",
+  BEST_RESPONSE: "Response",
+};
+
 export default function ExperiencePlayerPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const { data: session } = useSession();
   const [data, setData] = useState<ExperienceData | null>(null);
   const [showTranslation, setShowTranslation] = useState(false);
-  const [matchingPairs, setMatchingPairs] = useState<{ german: string; english: string; matched: boolean }[]>([]);
   const [mcqCorrect, setMcqCorrect] = useState<Record<number, boolean>>({});
   const [mcqSelected, setMcqSelected] = useState<Record<number, number | null>>({});
+
+  // Matching
+  const [matchingPairs, setMatchingPairs] = useState<{ german: string; english: string; matched: boolean }[]>([]);
+  const [matchShuffledGerman, setMatchShuffledGerman] = useState<string[]>([]);
+  const [matchShuffledEnglish, setMatchShuffledEnglish] = useState<string[]>([]);
   const [matchSelectedGerman, setMatchSelectedGerman] = useState<string | null>(null);
+  const [matchWrong, setMatchWrong] = useState(false);
+
   const [xpEarned, setXpEarned] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [completing, setCompleting] = useState(false);
-  const [submittingBonus, setSubmittingBonus] = useState(false);
   const [bonusDone, setBonusDone] = useState(false);
   const [progress, setProgress] = useState<{ completed: boolean; lessonXpClaimed: boolean; bonusXpClaimed: boolean } | null>(null);
   const waveformRef = useRef<HTMLDivElement>(null);
 
-  // Challenge state
-  const [arrangeOrder, setArrangeOrder] = useState<number[]>([]);
-  const [arrangeShuffled, setArrangeShuffled] = useState<ChallengeItem[]>([]);
-  const [bestResponseSelected, setBestResponseSelected] = useState<number | null>(null);
-  const [bestResponseCorrect, setBestResponseCorrect] = useState(false);
+  // Challenge tab state
+  const [activeTab, setActiveTab] = useState(0);
+  const [tabVocabCompleted, setTabVocabCompleted] = useState(false);
+  const [tabArrangeCompleted, setTabArrangeCompleted] = useState(false);
+  const [tabBestCompleted, setTabBestCompleted] = useState(false);
+
+  // Vocab Match challenge
   const [vocabMatchPairs, setVocabMatchPairs] = useState<{ item: ChallengeItem; matched: boolean }[]>([]);
   const [vocabSelected, setVocabSelected] = useState<string | null>(null);
+
+  // Arrange Dialogue challenge
+  const [arrangeOrder, setArrangeOrder] = useState<number[]>([]);
+  const [arrangeShuffled, setArrangeShuffled] = useState<ChallengeItem[]>([]);
+
+  // Best Response challenge
+  const [bestResponseSelected, setBestResponseSelected] = useState<number | null>(null);
+  const [bestResponseCorrect, setBestResponseCorrect] = useState(false);
 
   useEffect(() => {
     fetch(`/api/content/experience/${id}`).then((r) => r.json()).then((d) => {
       setData(d);
       const matching = d.questions?.find((q: Question) => q.type === "MATCHING");
       if (matching) {
-        setMatchingPairs(
-          matching.options.map((o: QuestionOption) => ({ german: o.germanText, english: o.englishText, matched: false }))
-        );
+        const pairs = matching.options.map((o: QuestionOption) => ({ german: o.germanText, english: o.englishText, matched: false }));
+        setMatchingPairs(pairs);
+        // Shuffle German and English independently
+        const de = pairs.map((p: { german: string; english: string; matched: boolean }) => p.german).sort(() => Math.random() - 0.5);
+        const en = pairs.map((p: { german: string; english: string; matched: boolean }) => p.english).sort(() => Math.random() - 0.5);
+        setMatchShuffledGerman(de);
+        setMatchShuffledEnglish(en);
       }
       const chal = d.challenges?.[0];
       if (chal) {
-        if (chal.type === "ARRANGE_DIALOGUE") {
-          const shuffled = [...chal.items].sort(() => Math.random() - 0.5);
-          setArrangeShuffled(shuffled);
-          setArrangeOrder([]);
-        }
         if (chal.type === "VOCAB_MATCH") {
           setVocabMatchPairs(chal.items.map((i: ChallengeItem) => ({ item: i, matched: false })));
         }
+        if (chal.type === "ARRANGE_DIALOGUE") {
+          setArrangeShuffled([...chal.items].sort(() => Math.random() - 0.5));
+          setArrangeOrder([]);
+        }
       }
-    }).catch(() => {});
+    }).catch(() => { });
   }, [id]);
 
   useEffect(() => {
     if (!session?.user?.id || !id) return;
-    fetch(`/api/user/experience/progress?experienceId=${id}`).then((r) => r.json()).then(setProgress).catch(() => {});
+    fetch(`/api/user/experience/progress?experienceId=${id}`).then((r) => r.json()).then((p: { completed: boolean; lessonXpClaimed: boolean; bonusXpClaimed: boolean }) => {
+      setProgress(p);
+      if (p.bonusXpClaimed) setBonusDone(true);
+    }).catch(() => { });
   }, [session, id]);
 
   useEffect(() => {
@@ -110,6 +138,22 @@ export default function ExperiencePlayerPage() {
     }
   }, [data]);
 
+  // Per-tab completion (derived before early return so hooks stay ordered)
+  const vocabChallengeDone = vocabMatchPairs.length > 0 && vocabMatchPairs.every((p) => p.matched);
+  const bestChallengeDone = bestResponseCorrect;
+  const bonusReady = tabVocabCompleted || tabArrangeCompleted || tabBestCompleted;
+
+  useEffect(() => {
+    if (vocabChallengeDone && !tabVocabCompleted) setTabVocabCompleted(true);
+  }, [vocabChallengeDone]);
+  useEffect(() => {
+    const done = arrangeOrder.length === data?.challenges?.[0]?.items?.length && arrangeOrder.length > 0;
+    if (done && !tabArrangeCompleted) setTabArrangeCompleted(true);
+  }, [arrangeOrder]);
+  useEffect(() => {
+    if (bestChallengeDone && !tabBestCompleted) setTabBestCompleted(true);
+  }, [bestChallengeDone]);
+
   if (!data) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -122,33 +166,21 @@ export default function ExperiencePlayerPage() {
   const matchingQuestion = data.questions.find((q) => q.type === "MATCHING");
   const challenge = data.challenges?.[0];
 
-  // Derived state
-  const allMcqCorrect = mcqQuestions.length > 0 && mcqQuestions.every((q) => mcqCorrect[q.id]);
-  const matchingComplete = matchingPairs.length > 0 && matchingPairs.every((p) => p.matched);
-  const canComplete = (mcqQuestions.length === 0 || allMcqCorrect) && (matchingPairs.length === 0 || matchingComplete);
-
-  const challengeDone = challenge
-    ? challenge.type === "VOCAB_MATCH"
-      ? vocabMatchPairs.length > 0 && vocabMatchPairs.every((p) => p.matched)
-      : challenge.type === "ARRANGE_DIALOGUE"
-        ? arrangeOrder.length === challenge.items.length
-        : challenge.type === "BEST_RESPONSE"
-          ? bestResponseCorrect
-          : false
-    : false;
+  const allMcqCorrect = mcqQuestions.length === 0 || mcqQuestions.every((q) => mcqCorrect[q.id]);
+  const matchingComplete = matchingPairs.length === 0 || matchingPairs.every((p) => p.matched);
+  const canComplete = allMcqCorrect && matchingComplete;
 
   const isReview = progress?.lessonXpClaimed === true;
 
   function handleMcqSelect(qId: number, optionIndex: number, isCorrect: boolean) {
     setMcqSelected((prev) => ({ ...prev, [qId]: optionIndex }));
-    if (isCorrect) {
-      setMcqCorrect((prev) => ({ ...prev, [qId]: true }));
-    }
+    if (isCorrect) setMcqCorrect((prev) => ({ ...prev, [qId]: true }));
   }
 
   function handleMatchingGermanSelect(german: string) {
     if (matchingPairs.find((p) => p.german === german)?.matched) return;
     setMatchSelectedGerman(german);
+    setMatchWrong(false);
   }
 
   function handleMatchingEnglishSelect(english: string) {
@@ -157,38 +189,36 @@ export default function ExperiencePlayerPage() {
     if (!pair || pair.matched) return;
     if (pair.english === english) {
       setMatchingPairs((prev) => prev.map((p) => p.german === matchSelectedGerman ? { ...p, matched: true } : p));
+      setMatchSelectedGerman(null);
+      setMatchWrong(false);
+    } else {
+      setMatchWrong(true);
+      setMatchSelectedGerman(null);
+      setTimeout(() => setMatchWrong(false), 600);
     }
-    setMatchSelectedGerman(null);
   }
 
   function handleComplete() {
     if (!canComplete || completing || !data) return;
     setCompleting(true);
-    fetch("/api/user/experience/complete", {
+    const p1 = fetch("/api/user/experience/complete", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ experienceId: data.id }),
-    }).then((r) => r.json()).then((res) => {
+    }).then((r) => r.json());
+
+    const p2 = bonusReady && !isReview
+      ? fetch("/api/user/experience/bonus-complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ experienceId: data.id }),
+        }).then((r) => r.json()).then((res) => { if (res.bonusXpAwarded) setBonusDone(true); })
+      : Promise.resolve();
+
+    Promise.all([p1, p2]).then(([res]) => {
       setXpEarned(res.lessonXpAwarded);
       setCompleted(true);
-    }).catch(() => {
-      setCompleting(false);
-    });
-  }
-
-  function handleBonusComplete() {
-    if (submittingBonus || bonusDone || !data) return;
-    setSubmittingBonus(true);
-    fetch("/api/user/experience/bonus-complete", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ experienceId: data.id }),
-    }).then((r) => r.json()).then((res) => {
-      if (res.bonusXpAwarded) setBonusDone(true);
-      setSubmittingBonus(false);
-    }).catch(() => {
-      setSubmittingBonus(false);
-    });
+    }).catch(() => setCompleting(false));
   }
 
   if (completed) {
@@ -199,8 +229,7 @@ export default function ExperiencePlayerPage() {
             <span className="material-symbols-outlined text-4xl text-white">check</span>
           </div>
           <h2 className="font-headline text-3xl text-on-surface mb-2">Completed!</h2>
-          <p className="text-2xl font-bold text-primary mb-2">+{xpEarned ? "50" : "0"} XP</p>
-          {bonusDone && <p className="text-lg font-semibold text-secondary mb-2">+20 Bonus XP</p>}
+          <p className="text-2xl font-bold text-primary mb-2">+{xpEarned ? (bonusDone ? "70" : "50") : "0"} XP</p>
           <p className="text-on-surface-variant mb-8">{!xpEarned ? "Reviewing" : "Great job!"}</p>
           <button onClick={() => router.push("/home")} className="bg-primary text-on-primary px-8 py-3 rounded-lg font-semibold w-full">
             Back to Home
@@ -276,9 +305,7 @@ export default function ExperiencePlayerPage() {
                 {data.transcripts.map((line) => (
                   <div key={line.id} className="p-3 rounded-lg hover:bg-surface-container-low transition-colors">
                     <p className="text-base text-on-surface leading-relaxed">{line.germanText}</p>
-                    {showTranslation && (
-                      <p className="text-sm text-on-surface-variant mt-1">{line.englishText}</p>
-                    )}
+                    {showTranslation && <p className="text-sm text-on-surface-variant mt-1">{line.englishText}</p>}
                   </div>
                 ))}
               </div>
@@ -301,9 +328,7 @@ export default function ExperiencePlayerPage() {
                   </button>
                   <div>
                     <p className="font-medium text-on-surface">{q.questionText}</p>
-                    {q.englishTranslation && (
-                      <p className="text-sm text-on-surface-variant">{q.englishTranslation}</p>
-                    )}
+                    {q.englishTranslation && <p className="text-sm text-on-surface-variant">{q.englishTranslation}</p>}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -312,9 +337,7 @@ export default function ExperiencePlayerPage() {
                     const isCorrectOpt = opt.correct;
                     const isAnsweredCorrectly = mcqCorrect[q.id];
                     let borderClass = "border-outline-variant";
-                    if (isSelected) {
-                      borderClass = isCorrectOpt ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50";
-                    }
+                    if (isSelected) borderClass = isCorrectOpt ? "border-green-500 bg-green-50" : "border-red-500 bg-red-50";
                     return (
                       <button
                         key={opt.id}
@@ -338,36 +361,37 @@ export default function ExperiencePlayerPage() {
               </div>
             ))}
 
-            {/* Matching Exercise */}
-            {matchingQuestion && (
+            {/* Matching Exercise - fixed: shuffled independent columns */}
+            {matchingQuestion && matchingPairs.length > 0 && (
               <div className="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/30">
                 <h4 className="text-xs text-on-surface-variant uppercase tracking-wider mb-4 font-semibold">Vocabulary Match</h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    {matchingQuestion.options.slice(0, Math.ceil(matchingQuestion.options.length / 2)).map((opt) => {
-                      const pair = matchingPairs.find((p) => p.german === opt.germanText);
-                      const isSelected = matchSelectedGerman === opt.germanText;
+                    {matchShuffledGerman.map((german) => {
+                      const pair = matchingPairs.find((p) => p.german === german);
+                      const isSelected = matchSelectedGerman === german;
                       return (
                         <button
-                          key={opt.id}
-                          onClick={() => handleMatchingGermanSelect(opt.germanText)}
+                          key={german}
+                          onClick={() => handleMatchingGermanSelect(german)}
                           className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${pair?.matched ? "border-green-500 bg-green-50 text-green-800" : isSelected ? "border-primary bg-primary/5" : "border-outline-variant bg-white hover:border-primary"}`}
                         >
-                          {opt.germanText}
+                          {german}
                         </button>
                       );
                     })}
                   </div>
                   <div className="space-y-2">
-                    {matchingQuestion.options.slice(Math.ceil(matchingQuestion.options.length / 2)).map((opt) => {
-                      const pair = matchingPairs.find((p) => p.english === opt.englishText);
+                    {matchShuffledEnglish.map((english) => {
+                      const pair = matchingPairs.find((p) => p.english === english);
+                      const isWrong = matchWrong && matchSelectedGerman === null && pair && !pair.matched;
                       return (
                         <button
-                          key={opt.id}
-                          onClick={() => handleMatchingEnglishSelect(opt.englishText)}
-                          className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${pair?.matched ? "border-green-500 bg-green-50 text-green-800" : "border-outline-variant bg-white hover:border-primary"}`}
+                          key={english}
+                          onClick={() => handleMatchingEnglishSelect(english)}
+                          className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${pair?.matched ? "border-green-500 bg-green-50 text-green-800" : isWrong ? "border-red-500 bg-red-50" : "border-outline-variant bg-white hover:border-primary"}`}
                         >
-                          {opt.englishText}
+                          {english}
                         </button>
                       );
                     })}
@@ -375,40 +399,46 @@ export default function ExperiencePlayerPage() {
                 </div>
               </div>
             )}
+          </aside>
+        </div>
 
-            {/* Complete Lesson button - inline */}
-            <div className="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/30">
-              <button
-                onClick={handleComplete}
-                disabled={!canComplete || completing}
-                className="w-full bg-primary text-on-primary py-4 rounded-xl font-semibold text-base shadow-sm disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all"
-              >
-                {completing ? "Completing..." : isReview ? "Complete Review" : `Complete — 50 XP`}
-              </button>
-              {canComplete && !challengeDone && !isReview && (
-                <p className="text-xs text-on-surface-variant text-center mt-2">Do the bonus challenge for +20 XP</p>
-              )}
-              {canComplete && challengeDone && !isReview && (
-                <p className="text-xs text-green-600 text-center mt-2 font-medium">Bonus +20 XP ready! Complete to earn all 70 XP</p>
-              )}
+        {/* Bonus Challenge Section - placed after Practice, before Complete button */}
+        <section className="max-w-[1200px] mx-auto w-full">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/30">
+            <h4 className="font-headline text-lg text-on-surface mb-3">Bonus Challenge — +20 XP</h4>
+
+            {/* 3-tab toggle */}
+            <div className="flex p-1 bg-surface-container-high rounded-xl gap-1 mb-4">
+              {CHALLENGE_TABS.map((type, i) => {
+                const tabDone = type === "VOCAB_MATCH" ? tabVocabCompleted : type === "ARRANGE_DIALOGUE" ? tabArrangeCompleted : tabBestCompleted;
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setActiveTab(i)}
+                    className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium text-center transition-colors flex items-center justify-center gap-1 ${activeTab === i ? "bg-white shadow-sm text-primary" : "text-on-surface-variant hover:bg-surface-variant/50"}`}
+                  >
+                    {TAB_LABELS[type]}
+                    {tabDone && (
+                      <span className="material-symbols-outlined text-green-600 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Challenge Section */}
-            {challenge && (
-              <div className="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/30">
-                <h4 className="font-headline text-base text-on-surface mb-3">Bonus Challenge — +20 XP</h4>
-
-                {challenge.type === "VOCAB_MATCH" && (
-                  <div className="space-y-3">
+            {/* Tab content */}
+            {activeTab === 0 && (
+              <div className="space-y-3">
+                {vocabMatchPairs.length === 0 ? (
+                  <p className="text-xs text-on-surface-variant text-center py-4">No vocabulary match available</p>
+                ) : (
+                  <>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
                         {vocabMatchPairs.map((vp) => (
                           <button
                             key={vp.item.id}
-                            onClick={() => {
-                              if (vp.matched) return;
-                              setVocabSelected(vp.item.text);
-                            }}
+                            onClick={() => { if (!vp.matched) setVocabSelected(vp.item.text); }}
                             className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${vp.matched ? "border-green-500 bg-green-50 text-green-800" : vocabSelected === vp.item.text ? "border-primary bg-primary/5" : "border-outline-variant bg-white hover:border-primary"}`}
                           >
                             {vp.item.text}
@@ -416,52 +446,43 @@ export default function ExperiencePlayerPage() {
                         ))}
                       </div>
                       <div className="space-y-2">
-                        {vocabMatchPairs.map((vp) => {
-                          const matchItem = vocabMatchPairs.find((p) => p.item.correctValue === vp.item.correctValue && p.matched);
-                          return (
-                            <button
-                              key={vp.item.id + "-en"}
-                              onClick={() => {
-                                if (!vocabSelected || vp.matched) return;
-                                const selectedItem = vocabMatchPairs.find((p) => p.item.text === vocabSelected);
-                                if (selectedItem && selectedItem.item.correctValue === vp.item.correctValue) {
-                                  setVocabMatchPairs((prev) => prev.map((p) => p.item.id === selectedItem.item.id || p.item.id === vp.item.id ? { ...p, matched: true } : p));
-                                }
-                                setVocabSelected(null);
-                              }}
-                              disabled={vp.matched}
-                              className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${vp.matched ? "border-green-500 bg-green-50 text-green-800" : "border-outline-variant bg-white hover:border-primary"}`}
-                            >
-                              {vp.item.translation}
-                            </button>
-                          );
-                        })}
+                        {vocabMatchPairs.map((vp) => (
+                          <button
+                            key={vp.item.id + "-en"}
+                            onClick={() => {
+                              if (!vocabSelected || vp.matched) return;
+                              const selectedItem = vocabMatchPairs.find((p) => p.item.text === vocabSelected);
+                              if (selectedItem && selectedItem.item.correctValue === vp.item.correctValue) {
+                                setVocabMatchPairs((prev) => prev.map((p) => p.item.id === selectedItem.item.id || p.item.id === vp.item.id ? { ...p, matched: true } : p));
+                              }
+                              setVocabSelected(null);
+                            }}
+                            disabled={vp.matched}
+                            className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${vp.matched ? "border-green-500 bg-green-50 text-green-800" : "border-outline-variant bg-white hover:border-primary"}`}
+                          >
+                            {vp.item.translation}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                    {challengeDone && (
-                      <button
-                        onClick={handleBonusComplete}
-                        disabled={submittingBonus || bonusDone}
-                        className="w-full bg-secondary text-on-secondary py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
-                      >
-                        {submittingBonus ? "Claiming..." : bonusDone ? "Bonus Claimed ✓" : "Claim +20 XP"}
-                      </button>
-                    )}
-                  </div>
+                  </>
                 )}
+              </div>
+            )}
 
-                {challenge.type === "ARRANGE_DIALOGUE" && (
-                  <div className="space-y-2">
+            {activeTab === 1 && (
+              <div className="space-y-2">
+                {arrangeShuffled.length === 0 ? (
+                  <p className="text-xs text-on-surface-variant text-center py-4">No dialogue arrangement available</p>
+                ) : (
+                  <>
                     <p className="text-xs text-on-surface-variant mb-2">Tap lines in the correct order:</p>
                     {arrangeShuffled.map((item, i) => {
                       const position = arrangeOrder.indexOf(i);
                       return (
                         <button
                           key={item.id}
-                          onClick={() => {
-                            if (position >= 0) return;
-                            setArrangeOrder((prev) => [...prev, i]);
-                          }}
+                          onClick={() => { if (position < 0) setArrangeOrder((prev) => [...prev, i]); }}
                           className={`w-full p-3 rounded-lg border text-left text-sm transition-colors flex items-center gap-3 ${position >= 0 ? "border-green-500 bg-green-50" : "border-outline-variant bg-white hover:border-primary"}`}
                         >
                           <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${position >= 0 ? "bg-green-500 text-white" : "bg-surface-container-highest text-on-surface-variant"}`}>
@@ -472,27 +493,19 @@ export default function ExperiencePlayerPage() {
                       );
                     })}
                     {arrangeOrder.length > 0 && (
-                      <button
-                        onClick={() => setArrangeOrder([])}
-                        className="text-xs text-primary hover:underline"
-                      >
-                        Reset order
-                      </button>
+                      <button onClick={() => setArrangeOrder([])} className="text-xs text-primary hover:underline">Reset order</button>
                     )}
-                    {challengeDone && (
-                      <button
-                        onClick={handleBonusComplete}
-                        disabled={submittingBonus || bonusDone}
-                        className="w-full bg-secondary text-on-secondary py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
-                      >
-                        {submittingBonus ? "Claiming..." : bonusDone ? "Bonus Claimed ✓" : "Claim +20 XP"}
-                      </button>
-                    )}
-                  </div>
+                  </>
                 )}
+              </div>
+            )}
 
-                {challenge.type === "BEST_RESPONSE" && (
-                  <div className="space-y-2">
+            {activeTab === 2 && (
+              <div className="space-y-2">
+                {!challenge || challenge.items.filter((ci) => ci.translation).length === 0 ? (
+                  <p className="text-xs text-on-surface-variant text-center py-4">No best response available</p>
+                ) : (
+                  <>
                     <p className="text-xs text-on-surface-variant mb-2">Select the best response:</p>
                     {challenge.items.map((item, i) => {
                       const isSelected = bestResponseSelected === i;
@@ -500,12 +513,7 @@ export default function ExperiencePlayerPage() {
                       return (
                         <button
                           key={item.id}
-                          onClick={() => {
-                            setBestResponseSelected(i);
-                            if (isCorrectItem) {
-                              setBestResponseCorrect(true);
-                            }
-                          }}
+                          onClick={() => { setBestResponseSelected(i); if (isCorrectItem) setBestResponseCorrect(true); }}
                           className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${isSelected && isCorrectItem ? "border-green-500 bg-green-50" : isSelected && !isCorrectItem ? "border-red-500 bg-red-50" : "border-outline-variant bg-white hover:border-primary"}`}
                         >
                           <span className="font-medium">{item.text}</span>
@@ -513,24 +521,31 @@ export default function ExperiencePlayerPage() {
                         </button>
                       );
                     })}
-                    {bestResponseCorrect && (
-                      <button
-                        onClick={handleBonusComplete}
-                        disabled={submittingBonus || bonusDone}
-                        className="w-full bg-secondary text-on-secondary py-3 rounded-xl font-semibold text-sm disabled:opacity-40"
-                      >
-                        {submittingBonus ? "Claiming..." : bonusDone ? "Bonus Claimed ✓" : "Claim +20 XP"}
-                      </button>
-                    )}
                     {bestResponseSelected !== null && !bestResponseCorrect && (
                       <p className="text-xs text-red-500 text-center">Not quite, try again</p>
                     )}
-                  </div>
+                  </>
                 )}
               </div>
             )}
-          </aside>
-        </div>
+          </div>
+        </section>
+
+        {/* Complete Lesson button - at the very end */}
+        <section className="max-w-[1200px] mx-auto w-full">
+          <div className="bg-white rounded-2xl p-4 shadow-sm border border-outline-variant/30">
+            <button
+              onClick={handleComplete}
+              disabled={!canComplete || completing}
+              className="w-full bg-primary text-on-primary py-4 rounded-xl font-semibold text-lg shadow-sm disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-90 transition-all"
+            >
+              {completing ? "Completing..." : `Complete Lesson +${bonusReady ? "70" : "50"} XP`}
+            </button>
+            {!bonusReady && !isReview && (
+              <p className="text-xs text-on-surface-variant text-center mt-2">Do bonus for +20 XP</p>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );
