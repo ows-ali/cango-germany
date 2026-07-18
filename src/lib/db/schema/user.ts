@@ -5,7 +5,11 @@ export const users = pgTable("users", {
   id: text("id").primaryKey(),
   email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 200 }),
+  passwordHash: varchar("password_hash", { length: 255 }),
   authProvider: varchar("auth_provider", { length: 50 }),
+  goals: text("goals").array(),
+  cefrLevel: varchar("cefr_level", { length: 10 }),
+  onboardingComplete: boolean("onboarding_complete").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

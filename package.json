@@ -18,7 +18,10 @@
   "description": "",
   "dependencies": {
     "@auth/core": "^0.41.2",
+    "@auth/drizzle-adapter": "^1.11.2",
     "@supabase/supabase-js": "^2.109.0",
+    "@types/bcryptjs": "^2.4.6",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "dexie": "^4.4.4",
     "drizzle-orm": "^0.45.2",
@@ -28,12 +31,14 @@
     "postgres": "^3.4.9",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "uuid": "^14.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.1.1",
     "@types/react": "^19.2.17",
+    "@types/uuid": "^10.0.0",
     "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",
     "postcss": "^8.5.19",
