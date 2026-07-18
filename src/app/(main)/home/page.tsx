@@ -13,6 +13,11 @@ interface Scenario {
 }
 
 const LEVEL_MAP: Record<string, number> = { A2: 1, B1: 2, B2: 3 };
+const HERO_IMAGES: Record<string, string> = {
+  transportation: "/images/scenario-transportation.jpg",
+  doctor: "/images/scenario-doctor.jpg",
+  "job-interview": "/images/scenario-job-interview.jpg",
+};
 
 export default function HomePage() {
   const { data: session } = useSession();
@@ -28,36 +33,8 @@ export default function HomePage() {
     }
   }, [session]);
 
-  const levelLabels: Record<number, string> = { 1: "A2", 2: "B1", 3: "B2" };
-  const icons: Record<string, string> = {
-    transportation: "train",
-    doctor: "medical_services",
-    "job-interview": "work",
-  };
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Bar */}
-      <header className="bg-surface sticky top-0 z-40 border-b border-surface-container">
-        <div className="flex justify-between items-center w-full px-margin-mobile h-16 max-w-[1280px] mx-auto">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="6" y="6" width="20" height="20" rx="2" stroke="#1e293b" strokeWidth="3" />
-            <path d="M16 6V26" stroke="#1e293b" strokeWidth="3" />
-          </svg>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-surface-container px-2 py-1 rounded-full">
-              <span className="text-xs font-semibold text-on-surface">500 XP</span>
-            </div>
-            <div className="flex items-center gap-1 bg-secondary-container px-2 py-1 rounded-full">
-              <span className="text-xs font-semibold text-on-secondary-container">7 🔥</span>
-            </div>
-            <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center">
-              <span className="material-symbols-outlined text-sm text-on-secondary-container">person</span>
-            </div>
-          </div>
-        </div>
-      </header>
-
       <div className="max-w-[1280px] mx-auto px-margin-mobile py-6 pb-24">
         <section className="mb-8">
           <h1 className="font-headline text-3xl md:text-4xl text-on-surface mb-1">Guten Morgen!</h1>
@@ -98,17 +75,15 @@ export default function HomePage() {
           {scenarios.map((s) => (
             <Link key={s.id} href={`/scenario/${s.slug}`}>
               <div className="bg-white flex flex-col rounded-xl overflow-hidden shadow-sm border border-outline-variant/30 hover:shadow-md transition-shadow">
-                <div className="h-40 bg-gradient-to-br from-primary-container to-primary relative flex items-center justify-center">
-                  <span className="material-symbols-outlined text-6xl text-white/80">{icons[s.slug] || "school"}</span>
+                <div className="h-40 relative overflow-hidden">
+                  <img src={HERO_IMAGES[s.slug] || "/images/onboarding-bg.jpg"} alt={s.name} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                   <div className="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-[10px] font-bold text-primary border border-surface-container">
                     {userLevel}
                   </div>
                 </div>
                 <div className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="material-symbols-outlined text-primary text-xl">{icons[s.slug] || "school"}</span>
-                    <h4 className="text-lg font-bold text-on-surface">{s.name}</h4>
-                  </div>
+                  <h4 className="text-lg font-bold text-on-surface mb-1">{s.name}</h4>
                   <p className="text-sm text-on-surface-variant mb-4">{s.description}</p>
                   <div className="flex items-center justify-end">
                     <span className="border border-primary text-primary px-6 py-2 rounded-lg font-semibold text-xs">

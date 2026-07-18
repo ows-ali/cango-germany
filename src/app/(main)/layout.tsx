@@ -1,6 +1,9 @@
+import Header from "./_components/Header";
+
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      <Header />
       {children}
       {/* Mobile Bottom Nav */}
       <nav className="fixed bottom-0 left-0 w-full flex justify-around items-center py-2 bg-surface border-t border-outline-variant z-50 md:hidden rounded-t-xl">
