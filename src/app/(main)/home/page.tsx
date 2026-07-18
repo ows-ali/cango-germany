@@ -78,11 +78,11 @@ export default function HomePage() {
         </section>
 
         {/* My Germany */}
-        <section className="space-y-6">
+        <section className="flex flex-col gap-6">
           <h3 className="font-headline text-2xl text-on-surface">My Germany</h3>
 
           {!loaded && scenarios.length === 0 && (
-            <div className="space-y-6 animate-pulse">
+            <div className="flex flex-col gap-6 animate-pulse">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant/30">
                   <div className="h-40 bg-surface-container-highest" />
