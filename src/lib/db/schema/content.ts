@@ -94,6 +94,8 @@ export const challenges = pgTable("challenges", {
   id: serial("id").primaryKey(),
   experienceId: integer("experience_id").notNull().references(() => experiences.id),
   type: varchar("type", { length: 20 }).notNull().$type<"BEST_RESPONSE" | "ARRANGE_DIALOGUE" | "VOCAB_MATCH">(),
+  question: text("question"),
+  questionEnglish: text("question_english"),
 });
 
 export const challengeItems = pgTable("challenge_items", {

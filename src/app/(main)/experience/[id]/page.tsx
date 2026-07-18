@@ -24,7 +24,7 @@ interface ChallengeItem {
 }
 
 interface Challenge {
-  id: number; type: string; items: ChallengeItem[];
+  id: number; type: string; items: ChallengeItem[]; question?: string; questionEnglish?: string;
 }
 
 interface ExperienceData {
@@ -80,6 +80,8 @@ export default function ExperiencePlayerPage() {
   // Arrange Dialogue challenge
   const [arrangeOrder, setArrangeOrder] = useState<number[]>([]);
   const [arrangeShuffled, setArrangeShuffled] = useState<ChallengeItem[]>([]);
+  const [arrangeWrong, setArrangeWrong] = useState(false);
+  const arrangeCheckTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Best Response challenge
   const [bestResponseSelected, setBestResponseSelected] = useState<number | null>(null);
@@ -98,19 +100,18 @@ export default function ExperiencePlayerPage() {
         setMatchShuffledGerman(de);
         setMatchShuffledEnglish(en);
       }
-      const chal = d.challenges?.[0];
-      if (chal) {
-        if (chal.type === "VOCAB_MATCH") {
-          const pairs = chal.items.map((i: ChallengeItem) => ({ item: i, matched: false }));
-          setVocabMatchPairs(pairs);
-          const indices = pairs.map((_: unknown, i: number) => i);
-          setVocabLeftOrder([...indices].sort(() => Math.random() - 0.5));
-          setVocabRightOrder([...indices].sort(() => Math.random() - 0.5));
-        }
-        if (chal.type === "ARRANGE_DIALOGUE") {
-          setArrangeShuffled([...chal.items].sort(() => Math.random() - 0.5));
-          setArrangeOrder([]);
-        }
+      const vocabChal = d.challenges?.find((c: Challenge) => c.type === "VOCAB_MATCH");
+      if (vocabChal) {
+        const pairs = vocabChal.items.map((i: ChallengeItem) => ({ item: i, matched: false }));
+        setVocabMatchPairs(pairs);
+        const indices = pairs.map((_: unknown, i: number) => i);
+        setVocabLeftOrder([...indices].sort(() => Math.random() - 0.5));
+        setVocabRightOrder([...indices].sort(() => Math.random() - 0.5));
+      }
+      const arrangeChal = d.challenges?.find((c: Challenge) => c.type === "ARRANGE_DIALOGUE");
+      if (arrangeChal) {
+        setArrangeShuffled([...arrangeChal.items].sort(() => Math.random() - 0.5));
+        setArrangeOrder([]);
       }
     }).catch(() => { });
   }, [id]);
@@ -165,8 +166,22 @@ export default function ExperiencePlayerPage() {
     if (vocabChallengeDone && !tabVocabCompleted) setTabVocabCompleted(true);
   }, [vocabChallengeDone]);
   useEffect(() => {
-    const done = arrangeOrder.length === data?.challenges?.[0]?.items?.length && arrangeOrder.length > 0;
-    if (done && !tabArrangeCompleted) setTabArrangeCompleted(true);
+    const arrangeChal = data?.challenges?.find((c: Challenge) => c.type === "ARRANGE_DIALOGUE");
+    if (!arrangeChal) return;
+    const allPlaced = arrangeOrder.length === arrangeChal.items.length && arrangeOrder.length > 0;
+    if (allPlaced && !tabArrangeCompleted && !arrangeWrong) {
+      const isCorrect = arrangeOrder.every((idx, pos) => arrangeChal.items[idx].order === pos + 1);
+      if (isCorrect) {
+        setTabArrangeCompleted(true);
+      } else {
+        setArrangeWrong(true);
+        if (arrangeCheckTimeout.current) clearTimeout(arrangeCheckTimeout.current);
+        arrangeCheckTimeout.current = setTimeout(() => {
+          setArrangeOrder([]);
+          setArrangeWrong(false);
+        }, 1500);
+      }
+    }
   }, [arrangeOrder]);
   useEffect(() => {
     if (bestChallengeDone && !tabBestCompleted) setTabBestCompleted(true);
@@ -187,7 +202,9 @@ export default function ExperiencePlayerPage() {
 
   const mcqQuestions = data.questions.filter((q) => q.type === "MCQ");
   const matchingQuestion = data.questions.find((q) => q.type === "MATCHING");
-  const challenge = data.challenges?.[0];
+  const vocabMatchChallenge = data.challenges?.find((c) => c.type === "VOCAB_MATCH");
+  const arrangeChallenge = data.challenges?.find((c) => c.type === "ARRANGE_DIALOGUE");
+  const bestChallenge = data.challenges?.find((c) => c.type === "BEST_RESPONSE");
 
   const allMcqCorrect = mcqQuestions.length === 0 || mcqQuestions.every((q) => mcqCorrect[q.id]);
   const matchingComplete = matchingPairs.length === 0 || matchingPairs.every((p) => p.matched);
@@ -507,17 +524,21 @@ export default function ExperiencePlayerPage() {
 
             {activeTab === 1 && (
               <div className="space-y-2">
-                {arrangeShuffled.length === 0 ? (
+                {!arrangeChallenge ? (
                   <p className="text-xs text-on-surface-variant text-center py-4">No dialogue arrangement available</p>
                 ) : (
                   <>
                     <p className="text-xs text-on-surface-variant mb-2">Tap lines in the correct order:</p>
+                    {arrangeWrong && (
+                      <p className="text-xs text-red-500 text-center mb-2">Incorrect order, try again</p>
+                    )}
                     {arrangeShuffled.map((item, i) => {
                       const position = arrangeOrder.indexOf(i);
                       return (
                         <button
                           key={item.id}
-                          onClick={() => { if (position < 0) setArrangeOrder((prev) => [...prev, i]); }}
+                          onClick={() => { if (position < 0 && !arrangeWrong) setArrangeOrder((prev) => [...prev, i]); }}
+                          disabled={arrangeWrong}
                           className={`w-full p-3 rounded-lg border text-left text-sm transition-colors flex items-center gap-3 ${position >= 0 ? "border-green-500 bg-green-50" : "border-outline-variant bg-white hover:border-primary"}`}
                         >
                           <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${position >= 0 ? "bg-green-500 text-white" : "bg-surface-container-highest text-on-surface-variant"}`}>
@@ -527,7 +548,7 @@ export default function ExperiencePlayerPage() {
                         </button>
                       );
                     })}
-                    {arrangeOrder.length > 0 && (
+                    {arrangeOrder.length > 0 && !arrangeWrong && (
                       <button onClick={() => setArrangeOrder([])} className="text-xs text-primary hover:underline">Reset order</button>
                     )}
                   </>
@@ -537,12 +558,20 @@ export default function ExperiencePlayerPage() {
 
             {activeTab === 2 && (
               <div className="space-y-2">
-                {!challenge || challenge.items.filter((ci) => ci.translation).length === 0 ? (
+                {!bestChallenge || bestChallenge.items.filter((ci) => ci.translation).length === 0 ? (
                   <p className="text-xs text-on-surface-variant text-center py-4">No best response available</p>
                 ) : (
                   <>
+                    {bestChallenge.question && (
+                      <div className="bg-surface-container-low rounded-xl p-4 mb-3 border border-outline-variant/30">
+                        <p className="text-sm font-medium text-on-surface">{bestChallenge.question}</p>
+                        {bestChallenge.questionEnglish && (
+                          <p className="text-xs text-on-surface-variant mt-1">{bestChallenge.questionEnglish}</p>
+                        )}
+                      </div>
+                    )}
                     <p className="text-xs text-on-surface-variant mb-2">Select the best response:</p>
-                    {challenge.items.map((item, i) => {
+                    {bestChallenge.items.map((item, i) => {
                       const isSelected = bestResponseSelected === i;
                       const isCorrectItem = item.correctValue === "correct";
                       return (

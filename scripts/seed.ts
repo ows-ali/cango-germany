@@ -102,18 +102,18 @@ async function main() {
     return id;
   }
 
-  // Helper: insert experience with transcripts, words, questions, matching, challenge
+  // Helper: insert experience with transcripts, words, questions, matching, challenges
   function addExperience(
     moduleId: number, title: string, level: number, scenario: string,
     lines: { de: string; en: string }[],
     vocab: { de: string; en: string; article?: string; plural?: string }[],
     mcqs: { de: string; en: string; options: { de: string; en: string; correct: boolean }[] }[],
     matchingPairs: { de: string; en: string }[],
-    challengeType: "BEST_RESPONSE" | "ARRANGE_DIALOGUE" | "VOCAB_MATCH",
-    challengeItemsData: { text: string; translation?: string; order: number; correctValue?: string }[],
+    bestResponse: { question: string; questionEnglish: string; options: { text: string; translation: string; correct: boolean }[] },
+    extraVocabPairs?: { de: string; en: string }[],
+    manualVocabMatchItems?: { text: string; translation: string; correctValue: string }[],
   ) {
     const eid = expId++;
-    const durationMap: Record<number, string> = { 1: "1:30", 2: "2:15", 3: "3:00" };
     const durs = ["1:15", "1:45", "2:00", "2:30", "3:00"];
     expValues.push({
       id: eid, moduleId, title, order: (expId - 1) % 3 + 1,
@@ -147,11 +147,36 @@ async function main() {
       });
     }
 
-    // Challenge
-    const cid = chId++;
-    chValues.push({ id: cid, experienceId: eid, type: challengeType });
-    challengeItemsData.forEach(ci => {
-      ciValues.push({ id: ciId++, challengeId: cid, text: ci.text, translation: ci.translation, order: ci.order, correctValue: ci.correctValue });
+    // Challenge 1: ARRANGE_DIALOGUE — auto from transcript lines
+    const arrangeCid = chId++;
+    chValues.push({ id: arrangeCid, experienceId: eid, type: "ARRANGE_DIALOGUE" });
+    lines.forEach((l, i) => {
+      ciValues.push({ id: ciId++, challengeId: arrangeCid, text: l.de, order: i + 1 });
+    });
+
+    // Challenge 2: VOCAB_MATCH — from manual items or auto from matchingPairs + extra, always 5 pairs
+    const vocabCid = chId++;
+    chValues.push({ id: vocabCid, experienceId: eid, type: "VOCAB_MATCH" });
+    if (manualVocabMatchItems) {
+      manualVocabMatchItems.forEach(ci => {
+        ciValues.push({ id: ciId++, challengeId: vocabCid, text: ci.text, translation: ci.translation, correctValue: ci.correctValue });
+      });
+    } else {
+      const allPairs = [...matchingPairs, ...(extraVocabPairs || [])];
+      const targetPairs = allPairs.slice(0, 5);
+      while (targetPairs.length < 5) {
+        targetPairs.push({ de: `Wort ${targetPairs.length + 1}`, en: `Word ${targetPairs.length + 1}` });
+      }
+      targetPairs.forEach((pair, i) => {
+        ciValues.push({ id: ciId++, challengeId: vocabCid, text: pair.de, translation: pair.en, correctValue: `pair_${i}` });
+      });
+    }
+
+    // Challenge 3: BEST_RESPONSE
+    const brCid = chId++;
+    chValues.push({ id: brCid, experienceId: eid, type: "BEST_RESPONSE", question: bestResponse.question, questionEnglish: bestResponse.questionEnglish });
+    bestResponse.options.forEach((opt, i) => {
+      ciValues.push({ id: ciId++, challengeId: brCid, text: opt.text, translation: opt.translation, order: i + 1, correctValue: opt.correct ? "correct" : "wrong" });
     });
   }
 
@@ -175,14 +200,11 @@ async function main() {
       { de: "Wie viel kostet die Fahrkarte?", en: "How much does the ticket cost?", options: [{ de: "35 Euro", en: "35 euros", correct: false }, { de: "45 Euro", en: "45 euros", correct: true }, { de: "55 Euro", en: "55 euros", correct: false }] },
     ],
     [{ de: "einfach", en: "one-way" }, { de: "hin und zurück", en: "round trip" }, { de: "kosten", en: "to cost" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Guten Tag, ich möchte eine Fahrkarte nach Berlin kaufen.", order: 1 },
-      { text: "Einfach oder hin und zurück?", order: 2 },
-      { text: "Einfach bitte. Wie viel kostet das?", order: 3 },
-      { text: "Das macht 45 Euro.", order: 4 },
-      { text: "Hier ist mein Geld. Vielen Dank!", order: 5 },
-    ],
+    { question: "Was machen Sie zuerst am Automaten?", questionEnglish: "What do you do first at the machine?", options: [
+      { text: "Drücken Sie auf 'Fahrkarte kaufen'.", translation: "Press 'Buy ticket'.", correct: true },
+      { text: "Rufen Sie den Techniker an.", translation: "Call the technician.", correct: false },
+      { text: "Gehen Sie zum nächsten Automaten.", translation: "Go to the next machine.", correct: false }
+    ] },
   );
 
   addExperience(1, "Asking for a Discount Card", 1, "Transportation",
@@ -199,12 +221,11 @@ async function main() {
       { de: "Wie viel Rabatt bekommt man mit der Bahncard 25?", en: "How much discount do you get with Bahncard 25?", options: [{ de: "10 Prozent", en: "10 percent", correct: false }, { de: "25 Prozent", en: "25 percent", correct: true }, { de: "50 Prozent", en: "50 percent", correct: false }] },
     ],
     [{ de: "beantragen", en: "to apply for" }, { de: "das Formular", en: "form" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Entschuldigung, wo kann ich eine Bahncard beantragen?", translation: "Excuse me, where can I apply for a Bahncard?", order: 2, correctValue: "correct" },
-      { text: "Ich hätte gerne ein Bier, bitte.", translation: "I'd like a beer, please.", order: 1, correctValue: "wrong" },
-      { text: "Können Sie mir den Weg zum Hotel zeigen?", translation: "Can you show me the way to the hotel?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Was fragen Sie am Schalter?", questionEnglish: "What do you ask at the counter?", options: [
+      { text: "Entschuldigung, wo kann ich eine Bahncard beantragen?", translation: "Excuse me, where can I apply for a Bahncard?", correct: true },
+      { text: "Ich hätte gerne ein Bier, bitte.", translation: "I'd like a beer, please.", correct: false },
+      { text: "Können Sie mir den Weg zum Hotel zeigen?", translation: "Can you show me the way to the hotel?", correct: false }
+    ] },
   );
 
   addExperience(1, "Buying a Ticket from the Machine", 1, "Transportation",
@@ -221,14 +242,11 @@ async function main() {
       { de: "Wie kann man am Automaten bezahlen?", en: "How can you pay at the machine?", options: [{ de: "Nur mit Bargeld", en: "Cash only", correct: false }, { de: "Mit Karte oder Bargeld", en: "With card or cash", correct: true }, { de: "Nur mit Karte", en: "Card only", correct: false }] },
     ],
     [{ de: "drücken", en: "to press" }, { de: "das Ziel", en: "destination" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Entschuldigung, wie funktioniert dieser Automat?", order: 1 },
-      { text: "Drücken Sie zuerst auf 'Fahrkarte kaufen'.", order: 2 },
-      { text: "Und dann wähle ich mein Ziel aus?", order: 3 },
-      { text: "Genau. Dann bezahlen Sie mit Karte oder Bargeld.", order: 4 },
-      { text: "Vielen Dank für Ihre Hilfe!", order: 5 },
-    ],
+    { question: "Was fragen Sie am Busbahnhof?", questionEnglish: "What do you ask at the bus station?", options: [
+      { text: "Fährt dieser Bus zum Hauptbahnhof?", translation: "Does this bus go to the main station?", correct: true },
+      { text: "Wo ist die nächste Tankstelle?", translation: "Where is the nearest gas station?", correct: false },
+      { text: "Wie viel kostet ein Taxi?", translation: "How much does a taxi cost?", correct: false }
+    ] },
   );
 
   // Module 2: Finding Your Way (A2)
@@ -246,12 +264,11 @@ async function main() {
       { de: "Wie weit ist es zum Gleis?", en: "How far is it to the platform?", options: [{ de: "Zehn Minuten", en: "Ten minutes", correct: false }, { de: "Zwei Minuten", en: "Two minutes", correct: true }, { de: "Fünf Minuten", en: "Five minutes", correct: false }] },
     ],
     [{ de: "hochgehen", en: "to go up" }, { de: "nach rechts", en: "to the right" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Entschuldigung, wo ist Gleis 5?", translation: "Excuse me, where is platform 5?", order: 1, correctValue: "correct" },
-      { text: "Können Sie mir ein Taxi rufen?", translation: "Can you call me a taxi?", order: 2, correctValue: "wrong" },
-      { text: "Ich möchte ein Zimmer reservieren.", translation: "I'd like to reserve a room.", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Wie fragen Sie nach dem Weg?", questionEnglish: "How do you ask for directions?", options: [
+      { text: "Entschuldigung, wo ist Gleis 5?", translation: "Excuse me, where is platform 5?", correct: true },
+      { text: "Können Sie mir ein Taxi rufen?", translation: "Can you call me a taxi?", correct: false },
+      { text: "Ich möchte ein Zimmer reservieren.", translation: "I'd like to reserve a room.", correct: false }
+    ] },
   );
 
   addExperience(2, "Finding the Right Bus", 1, "Transportation",
@@ -268,11 +285,16 @@ async function main() {
       { de: "Was muss der Fahrgast am Alexanderplatz machen?", en: "What does the passenger need to do at Alexanderplatz?", options: [{ de: "Aussteigen und ein Taxi nehmen", en: "Get off and take a taxi", correct: false }, { de: "Umsteigen in die M10", en: "Change to the M10", correct: true }, { de: "Eine Fahrkarte kaufen", en: "Buy a ticket", correct: false }] },
     ],
     [{ de: "die Auskunft", en: "information" }],
-    "VOCAB_MATCH",
+    { question: "Sie verstehen die Tafel nicht. Was sagen Sie?", questionEnglish: "You don't understand the board. What do you say?", options: [
+      { text: "Entschuldigung, ich verstehe die Anzeigetafel nicht.", translation: "Excuse me, I don't understand the board.", correct: true },
+      { text: "Ich möchte ein Zimmer buchen.", translation: "I'd like to book a room.", correct: false },
+      { text: "Wo ist das Fundbüro?", translation: "Where is lost and found?", correct: false }
+    ] },
+    undefined,
     [
-      { text: "der Bus", translation: "bus", order: 1, correctValue: "bus" },
-      { text: "umsteigen", translation: "to transfer", order: 2, correctValue: "transfer" },
-      { text: "der Hauptbahnhof", translation: "main station", order: 3, correctValue: "mainstation" },
+      { text: "der Bus", translation: "bus", correctValue: "bus" },
+      { text: "umsteigen", translation: "to transfer", correctValue: "transfer" },
+      { text: "der Hauptbahnhof", translation: "main station", correctValue: "mainstation" }
     ],
   );
 
@@ -290,14 +312,11 @@ async function main() {
       { de: "Wann fährt der Zug?", en: "When does the train depart?", options: [{ de: "Um 13:30 Uhr", en: "At 1:30 PM", correct: false }, { de: "Um 14:30 Uhr", en: "At 2:30 PM", correct: true }, { de: "Um 15:30 Uhr", en: "At 3:30 PM", correct: false }] },
     ],
     [{ de: "verstehen", en: "to understand" }, { de: "suchen", en: "to look for" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Entschuldigung, ich verstehe die Anzeigetafel nicht.", order: 1 },
-      { text: "Welchen Zug suchen Sie?", order: 2 },
-      { text: "Den ICE nach Hamburg um 14:30 Uhr.", order: 3 },
-      { text: "Der steht auf Gleis 7. Die Abfahrt ist pünktlich.", order: 4 },
-      { text: "Perfekt, vielen Dank!", order: 5 },
-    ],
+    { question: "Ihr Zug fällt aus. Was tun Sie?", questionEnglish: "Your train is cancelled. What do you do?", options: [
+      { text: "Gehen Sie zu Gleis 4 und nehmen Sie den Ersatzzug.", translation: "Go to platform 4 and take the replacement train.", correct: true },
+      { text: "Warten Sie einfach am Gleis.", translation: "Just wait at the platform.", correct: false },
+      { text: "Rufen Sie ein Taxi.", translation: "Call a taxi.", correct: false }
+    ] },
   );
 
   // ── B1 Modules (id 3,4) ──
@@ -315,12 +334,11 @@ async function main() {
       { de: "Wie viel Verspätung hat der Zug?", en: "How late is the train?", options: [{ de: "10 Minuten", en: "10 minutes", correct: false }, { de: "20 Minuten", en: "20 minutes", correct: true }, { de: "30 Minuten", en: "30 minutes", correct: false }] },
     ],
     [{ de: "voraussichtlich", en: "expected/probably" }, { de: "das Verständnis", en: "understanding" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Entschuldigung, warum hat der Zug Verspätung?", translation: "Excuse me, why is the train delayed?", order: 1, correctValue: "correct" },
-      { text: "Ich möchte eine Fahrkarte kaufen.", translation: "I'd like to buy a ticket.", order: 2, correctValue: "wrong" },
-      { text: "Wo ist das Restaurant?", translation: "Where is the restaurant?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Was fragen Sie den Schaffner?", questionEnglish: "What do you ask the conductor?", options: [
+      { text: "Entschuldigung, warum hat der Zug Verspätung?", translation: "Excuse me, why is the train delayed?", correct: true },
+      { text: "Ich möchte eine Fahrkarte kaufen.", translation: "I'd like to buy a ticket.", correct: false },
+      { text: "Wo ist das Restaurant?", translation: "Where is the restaurant?", correct: false }
+    ] },
   );
 
   addExperience(3, "Cancelled Train — Finding Alternatives", 2, "Transportation",
@@ -337,14 +355,11 @@ async function main() {
       { de: "Wann fährt der Ersatzzug?", en: "When does the replacement train depart?", options: [{ de: "Um 17:15 Uhr", en: "At 5:15 PM", correct: true }, { de: "Um 18:00 Uhr", en: "At 6:00 PM", correct: false }, { de: "Um 16:45 Uhr", en: "At 4:45 PM", correct: false }] },
     ],
     [{ de: "sich begeben", en: "to proceed" }, { de: "alternativ", en: "alternatively" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Meine Damen und Herren, der IC 208 nach Stuttgart fällt heute aus.", order: 1 },
-      { text: "Bitte begeben Sie sich zu Gleis 4.", order: 2 },
-      { text: "Dort wartet ein Ersatzzug.", order: 3 },
-      { text: "Die Abfahrt ist um 17:15 Uhr.", order: 4 },
-      { text: "Wir entschuldigen uns für die Unannehmlichkeiten.", order: 5 },
-    ],
+    { question: "Das Gleis hat sich geändert. Was machen Sie?", questionEnglish: "The platform has changed. What do you do?", options: [
+      { text: "Achten Sie auf die neuen Aushänge.", translation: "Pay attention to the new notices.", correct: true },
+      { text: "Gehen Sie einfach nach Hause.", translation: "Just go home.", correct: false },
+      { text: "Steigen Sie in den erstbesten Zug.", translation: "Board the first train you see.", correct: false }
+    ] },
   );
 
   addExperience(3, "Understanding Platform Changes", 2, "Transportation",
@@ -361,11 +376,16 @@ async function main() {
       { de: "Von welchem Gleis fährt der RE 7 jetzt?", en: "From which platform does RE 7 depart now?", options: [{ de: "Gleis 8", en: "Platform 8", correct: false }, { de: "Gleis 12", en: "Platform 12", correct: true }, { de: "Gleis 6", en: "Platform 6", correct: false }] },
     ],
     [{ de: "sich ändern", en: "to change" }, { de: "beachten", en: "to pay attention to" }],
-    "VOCAB_MATCH",
+    { question: "Sie haben den Anschluss verpasst. Was machen Sie?", questionEnglish: "You missed your connection. What do you do?", options: [
+      { text: "Gehen Sie zum Serviceschalter und fragen Sie nach Hilfe.", translation: "Go to the service desk and ask for help.", correct: true },
+      { text: "Buchen Sie einen neuen Flug.", translation: "Book a new flight.", correct: false },
+      { text: "Warten Sie einfach.", translation: "Just wait.", correct: false }
+    ] },
+    undefined,
     [
-      { text: "die Gleiserneuerung", translation: "track renovation", order: 1, correctValue: "renovation" },
-      { text: "der Aushang", translation: "notice", order: 2, correctValue: "notice" },
-      { text: "der Bahnsteig", translation: "platform", order: 3, correctValue: "platform" },
+      { text: "die Gleiserneuerung", translation: "track renovation", correctValue: "renovation" },
+      { text: "der Aushang", translation: "notice", correctValue: "notice" },
+      { text: "der Bahnsteig", translation: "platform", correctValue: "platform" }
     ],
   );
 
@@ -384,12 +404,11 @@ async function main() {
       { de: "Wie lange hat er in Frankfurt Umsteigezeit?", en: "How long is his transfer time in Frankfurt?", options: [{ de: "10 Minuten", en: "10 minutes", correct: false }, { de: "15 Minuten", en: "15 minutes", correct: true }, { de: "20 Minuten", en: "20 minutes", correct: false }] },
     ],
     [{ de: "empfehlen", en: "to recommend" }, { de: "buchen", en: "to book" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Können Sie mir eine Route mit kurzer Umsteigezeit empfehlen?", translation: "Can you recommend a route with a short transfer time?", order: 1, correctValue: "correct" },
-      { text: "Ich hätte gerne ein Bier und eine Brezel.", translation: "I'd like a beer and a pretzel.", order: 2, correctValue: "wrong" },
-      { text: "Wo kann ich mein Gepäck abgeben?", translation: "Where can I drop off my luggage?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Was sagen Sie am Reisezentrum?", questionEnglish: "What do you say at the travel center?", options: [
+      { text: "Können Sie mir eine Route mit kurzer Umsteigezeit empfehlen?", translation: "Can you recommend a route with a short transfer time?", correct: true },
+      { text: "Ich hätte gerne ein Bier und eine Brezel.", translation: "I'd like a beer and a pretzel.", correct: false },
+      { text: "Wo kann ich mein Gepäck abgeben?", translation: "Where can I drop off my luggage?", correct: false }
+    ] },
   );
 
   addExperience(5, "Handling a Missed Connection", 3, "Transportation",
@@ -406,13 +425,11 @@ async function main() {
       { de: "Was macht der Service-Mitarbeiter?", en: "What does the service employee do?", options: [{ de: "Er gibt dem Fahrgast eine Entschädigung", en: "He gives the passenger compensation", correct: false }, { de: "Er bucht den Fahrgast kostenlos um", en: "He rebooks the passenger for free", correct: true }, { de: "Er ruft ein Taxi", en: "He calls a taxi", correct: false }] },
     ],
     [{ de: "umbuchen", en: "to rebook" }, { de: "entspannt", en: "relaxed" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Ich habe meinen Anschlusszug verpasst wegen der Verspätung.", order: 1 },
-      { text: "Kein Problem. Ich buche Sie kostenlos auf den nächsten Zug um.", order: 2 },
-      { text: "Muss ich mich beeilen, um einen Sitzplatz zu bekommen?", order: 3 },
-      { text: "Nein, Sie können entspannt einsteigen.", order: 4 },
-    ],
+    { question: "Sie sind unzufrieden. Was machen Sie?", questionEnglish: "You're dissatisfied. What do you do?", options: [
+      { text: "Reichen Sie eine schriftliche Beschwerde ein.", translation: "File a written complaint.", correct: true },
+      { text: "Schreiben Sie einen wütenden Brief.", translation: "Write an angry letter.", correct: false },
+      { text: "Vergessen Sie die Sache einfach.", translation: "Just forget about it.", correct: false }
+    ] },
   );
 
   addExperience(6, "Lodge a Formal Complaint", 3, "Transportation",
@@ -429,11 +446,16 @@ async function main() {
       { de: "Wie lange dauert die Bearbeitung der Beschwerde?", en: "How long does the complaint processing take?", options: [{ de: "7 Tage", en: "7 days", correct: false }, { de: "14 Tage", en: "14 days", correct: true }, { de: "30 Tage", en: "30 days", correct: false }] },
     ],
     [{ de: "einreichen", en: "to file" }, { de: "prüfen", en: "to review" }],
-    "VOCAB_MATCH",
+    { question: "Sie reisen geschäftlich. Welches Ticket?", questionEnglish: "You're traveling for business. Which ticket?", options: [
+      { text: "Gibt es einen Rabatt für Vielreisende?", translation: "Is there a discount for frequent travelers?", correct: true },
+      { text: "Wo ist das nächste Hotel?", translation: "Where is the nearest hotel?", correct: false },
+      { text: "Können Sie mir das Datum nennen?", translation: "Can you tell me the date?", correct: false }
+    ] },
+    undefined,
     [
-      { text: "die Beschwerde", translation: "complaint", order: 1, correctValue: "complaint" },
-      { text: "die Fahrpreiserstattung", translation: "fare refund", order: 2, correctValue: "refund" },
-      { text: "die Unterlagen", translation: "documents", order: 3, correctValue: "documents" },
+      { text: "die Beschwerde", translation: "complaint", correctValue: "complaint" },
+      { text: "die Fahrpreiserstattung", translation: "fare refund", correctValue: "refund" },
+      { text: "die Unterlagen", translation: "documents", correctValue: "documents" }
     ],
   );
 
@@ -451,12 +473,11 @@ async function main() {
       { de: "Was ist der Vorteil der Bahncard 100?", en: "What is the advantage of Bahncard 100?", options: [{ de: "25 Prozent Rabatt", en: "25 percent discount", correct: false }, { de: "Unbegrenztes Reisen für ein Jahr", en: "Unlimited travel for a year", correct: true }, { de: "Kostenlose Getränke im Zug", en: "Free drinks on the train", correct: false }] },
     ],
     [{ de: "der Vielreisende", en: "frequent traveler" }, { de: "die Investition", en: "investment" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Gibt es einen Rabatt für Vielreisende?", translation: "Is there a discount for frequent travelers?", order: 1, correctValue: "correct" },
-      { text: "Wo ist das nächste Hotel?", translation: "Where is the nearest hotel?", order: 2, correctValue: "wrong" },
-      { text: "Können Sie mir das Datum nennen?", translation: "Can you tell me the date?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Sie rufen beim Arzt an. Was sagen Sie?", questionEnglish: "You call the doctor. What do you say?", options: [
+      { text: "Guten Tag, ich möchte einen Termin vereinbaren.", translation: "Hello, I'd like to make an appointment.", correct: true },
+      { text: "Können Sie mir ein Rezept ausstellen?", translation: "Can you give me a prescription?", correct: false },
+      { text: "Ich brauche einen Krankenwagen.", translation: "I need an ambulance.", correct: false }
+    ] },
   );
 
   // ========================================
@@ -478,14 +499,11 @@ async function main() {
       { de: "Wann ist der Termin?", en: "When is the appointment?", options: [{ de: "Morgen um 10:00 Uhr", en: "Tomorrow at 10 AM", correct: false }, { de: "Nächste Woche Montag um 10:00 Uhr", en: "Next Monday at 10 AM", correct: true }, { de: "Heute um 14:00 Uhr", en: "Today at 2 PM", correct: false }] },
     ],
     [{ de: "vereinbaren", en: "to arrange" }, { de: "der Schmerz", en: "pain" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Praxis Dr. Müller, guten Tag. Was kann ich für Sie tun?", order: 1 },
-      { text: "Guten Tag, ich möchte einen Termin vereinbaren.", order: 2 },
-      { text: "Haben Sie Schmerzen oder ist es eine Vorsorgeuntersuchung?", order: 3 },
-      { text: "Es ist eine Vorsorgeuntersuchung.", order: 4 },
-      { text: "Dann nächste Woche Montag um 10:00 Uhr.", order: 5 },
-    ],
+    { question: "Der Termin passt. Was sagen Sie?", questionEnglish: "The time suits you. What do you say?", options: [
+      { text: "Ja, dieser Termin passt mir gut.", translation: "Yes, this appointment suits me.", correct: true },
+      { text: "Nein, ich habe keine Zeit.", translation: "No, I don't have time.", correct: false },
+      { text: "Rufen Sie morgen nochmal an.", translation: "Call again tomorrow.", correct: false }
+    ] },
   );
 
   addExperience(7, "Confirming the Appointment", 1, "Doctor",
@@ -502,12 +520,11 @@ async function main() {
       { de: "Was fragt der Patient nach der Versicherungskarte?", en: "What does the patient ask about the insurance card?", options: [{ de: "Ob er sie abgeben muss", en: "Whether he needs to hand it in", correct: true }, { de: "Ob sie kostenlos ist", en: "Whether it's free", correct: false }, { de: "Ob er sie verlängern kann", en: "Whether he can extend it", correct: false }] },
     ],
     [{ de: "das Formular", en: "form" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Muss ich meine Versicherungskarte abgeben?", translation: "Do I need to hand in my insurance card?", order: 1, correctValue: "correct" },
-      { text: "Wo ist die nächste Apotheke?", translation: "Where is the nearest pharmacy?", order: 2, correctValue: "wrong" },
-      { text: "Können Sie mir ein Rezept ausstellen?", translation: "Can you prescribe me a prescription?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Sie müssen den Termin verschieben. Was sagen Sie?", questionEnglish: "You need to reschedule. What do you say?", options: [
+      { text: "Können wir den Termin auf nächste Woche verschieben?", translation: "Can we move the appointment to next week?", correct: true },
+      { text: "Ich komme einfach nicht.", translation: "I just won't come.", correct: false },
+      { text: "Sagen Sie mir einfach eine neue Zeit.", translation: "Just tell me a new time.", correct: false }
+    ] },
   );
 
   addExperience(7, "Rescheduling an Appointment", 1, "Doctor",
@@ -524,14 +541,11 @@ async function main() {
       { de: "Wann ist der neue Termin?", en: "When is the new appointment?", options: [{ de: "Am Dienstag um 11:00 Uhr", en: "On Tuesday at 11 AM", correct: false }, { de: "Am Donnerstag um 11:00 Uhr", en: "On Thursday at 11 AM", correct: true }, { de: "Am Freitag um 10:00 Uhr", en: "On Friday at 10 AM", correct: false }] },
     ],
     [{ de: "passen", en: "to suit" }, { de: "eintragen", en: "to enter/register" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Ich muss meinen Termin leider verschieben.", order: 1 },
-      { text: "Kein Problem. Welcher Tag würde Ihnen passen?", order: 2 },
-      { text: "Geht es am Donnerstag um 11:00 Uhr?", order: 3 },
-      { text: "Ja, da habe ich einen Termin frei.", order: 4 },
-      { text: "Vielen Dank und entschuldigen Sie die kurzfristige Absage.", order: 5 },
-    ],
+    { question: "Sie haben starke Kopfschmerzen. Was sagen Sie?", questionEnglish: "You have a bad headache. What do you say?", options: [
+      { text: "Ich habe starke Kopfschmerzen und brauche etwas dagegen.", translation: "I have a bad headache and need something for it.", correct: true },
+      { text: "Ich möchte einen Kaffee.", translation: "I'd like a coffee.", correct: false },
+      { text: "Können Sie mich operieren?", translation: "Can you operate on me?", correct: false }
+    ] },
   );
 
   // A2 Module 8: Basic Symptoms
@@ -549,11 +563,16 @@ async function main() {
       { de: "Hat der Patient noch andere Symptome?", en: "Does the patient have any other symptoms?", options: [{ de: "Ja, Fieber", en: "Yes, fever", correct: false }, { de: "Ja, Husten", en: "Yes, cough", correct: false }, { de: "Nein, nur Kopfschmerzen", en: "No, just headache", correct: true }] },
     ],
     [{ de: "weh tun", en: "to hurt" }, { de: "stark", en: "strong/severe" }],
-    "VOCAB_MATCH",
+    { question: "Sie haben eine Erkältung. Was sagen Sie?", questionEnglish: "You have a cold. What do you say?", options: [
+      { text: "Ich habe Husten, Schnupfen und Halsschmerzen.", translation: "I have a cough, runny nose, and sore throat.", correct: true },
+      { text: "Ich habe mir den Fuß gebrochen.", translation: "I broke my foot.", correct: false },
+      { text: "Ich brauche eine neue Brille.", translation: "I need new glasses.", correct: false }
+    ] },
+    undefined,
     [
-      { text: "der Kopfschmerz", translation: "headache", order: 1, correctValue: "headache" },
-      { text: "das Fieber", translation: "fever", order: 2, correctValue: "fever" },
-      { text: "weh tun", translation: "to hurt", order: 3, correctValue: "hurt" },
+      { text: "der Kopfschmerz", translation: "headache", correctValue: "headache" },
+      { text: "das Fieber", translation: "fever", correctValue: "fever" },
+      { text: "weh tun", translation: "to hurt", correctValue: "hurt" }
     ],
   );
 
@@ -571,14 +590,11 @@ async function main() {
       { de: "Welche Temperatur hat der Patient?", en: "What temperature does the patient have?", options: [{ de: "37,5 Grad", en: "37.5 degrees", correct: false }, { de: "38,5 Grad", en: "38.5 degrees", correct: true }, { de: "39,5 Grad", en: "39.5 degrees", correct: false }] },
     ],
     [{ de: "messen", en: "to measure" }, { de: "verschreiben", en: "to prescribe" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Ich habe mich erkältet. Ich huste und habe Schnupfen.", order: 1 },
-      { text: "Haben Sie Ihre Temperatur gemessen?", order: 2 },
-      { text: "Ja, 38,5 Grad.", order: 3 },
-      { text: "Das ist leichtes Fieber.", order: 4 },
-      { text: "Ich verschreibe Ihnen einen Hustensaft.", order: 5 },
-    ],
+    { question: "Der Arzt fragt nach Allergien. Was sagen Sie?", questionEnglish: "The doctor asks about allergies. What do you say?", options: [
+      { text: "Ich bin allergisch gegen Penicillin.", translation: "I'm allergic to penicillin.", correct: true },
+      { text: "Ich mag keine Spritzen.", translation: "I don't like injections.", correct: false },
+      { text: "Mir ist kalt.", translation: "I'm cold.", correct: false }
+    ] },
   );
 
   addExperience(8, "Explaining an Allergy", 1, "Doctor",
@@ -595,12 +611,11 @@ async function main() {
       { de: "Welcher Test wird gemacht?", en: "Which test is done?", options: [{ de: "Ein Allergietest auf der Haut", en: "A skin allergy test", correct: false }, { de: "Ein einfacher Bluttest", en: "A simple blood test", correct: true }, { de: "Ein Röntgen", en: "An X-ray", correct: false }] },
     ],
     [{ de: "bekommen", en: "to get" }, { de: "ausreichen", en: "to be enough" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Was kann ich gegen die Symptome tun?", translation: "What can I do about the symptoms?", order: 1, correctValue: "correct" },
-      { text: "Können Sie mir ein Rezept ausstellen?", translation: "Can you give me a prescription?", order: 2, correctValue: "wrong" },
-      { text: "Muss ich operiert werden?", translation: "Do I need surgery?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Die Symptome sind schlimmer. Was sagen Sie?", questionEnglish: "The symptoms got worse. What do you say?", options: [
+      { text: "Die Schmerzen sind stärker geworden und ich habe Übelkeit.", translation: "The pain is worse and I feel nauseous.", correct: true },
+      { text: "Ich möchte den Termin verschieben.", translation: "I'd like to reschedule.", correct: false },
+      { text: "Können Sie mich nach Hause fahren?", translation: "Can you drive me home?", correct: false }
+    ] },
   );
 
   // ── Doctor B1 (Module 9) ──
@@ -618,11 +633,16 @@ async function main() {
       { de: "Welche zusätzlichen Symptome hat der Patient?", en: "What additional symptoms does the patient have?", options: [{ de: "Husten und Fieber", en: "Cough and fever", correct: false }, { de: "Übelkeit und Erbrechen", en: "Nausea and vomiting", correct: true }, { de: "Kopfschmerzen und Schwindel", en: "Headache and dizziness", correct: false }] },
     ],
     [{ de: "das Erbrechen", en: "vomiting" }, { de: "die Seite", en: "side" }],
-    "VOCAB_MATCH",
+    { question: "Der Hausarzt kann nicht helfen. Was bitten Sie?", questionEnglish: "The GP can't help. What do you ask?", options: [
+      { text: "Können Sie mir eine Überweisung zum Facharzt geben?", translation: "Can you give me a referral to a specialist?", correct: true },
+      { text: "Kann ich bitte gehen?", translation: "Can I please leave?", correct: false },
+      { text: "Haben Sie ein besseres Medikament?", translation: "Do you have a better medication?", correct: false }
+    ] },
+    undefined,
     [
-      { text: "die Übelkeit", translation: "nausea", order: 1, correctValue: "nausea" },
-      { text: "stechend", translation: "stabbing", order: 2, correctValue: "stabbing" },
-      { text: "der Durchfall", translation: "diarrhea", order: 3, correctValue: "diarrhea" },
+      { text: "die Übelkeit", translation: "nausea", correctValue: "nausea" },
+      { text: "stechend", translation: "stabbing", correctValue: "stabbing" },
+      { text: "der Durchfall", translation: "diarrhea", correctValue: "diarrhea" }
     ],
   );
 
@@ -640,14 +660,11 @@ async function main() {
       { de: "Was hat der Patient am Arm?", en: "What does the patient have on his arm?", options: [{ de: "Eine Schwellung", en: "A swelling", correct: false }, { de: "Einen Ausschlag", en: "A rash", correct: true }, { de: "Eine Verletzung", en: "An injury", correct: false }] },
     ],
     [{ de: "untersuchen", en: "to examine" }, { de: "der Facharzt", en: "specialist" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Ich glaube, ich brauche eine Überweisung zum Hautarzt.", order: 1 },
-      { text: "Was haben Sie für Beschwerden?", order: 2 },
-      { text: "Ich habe einen Ausschlag am Arm, der nicht weggeht.", order: 3 },
-      { text: "Das sollte ein Facharzt untersuchen.", order: 4 },
-      { text: "Ich schreibe Ihnen die Überweisung.", order: 5 },
-    ],
+    { question: "Der Arzt stellt eine Diagnose. Was machen Sie?", questionEnglish: "The doctor gives a diagnosis. What do you do?", options: [
+      { text: "Fragen Sie nach den nächsten Schritten und der Behandlung.", translation: "Ask about next steps and treatment.", correct: true },
+      { text: "Sagen Sie, dass Sie alles schon wissen.", translation: "Say you already know everything.", correct: false },
+      { text: "Gehen Sie einfach nach Hause.", translation: "Just go home.", correct: false }
+    ] },
   );
 
   addExperience(9, "Understanding a Diagnosis", 2, "Doctor",
@@ -664,12 +681,11 @@ async function main() {
       { de: "Wie oft soll der Patient die Tabletten nehmen?", en: "How often should the patient take the tablets?", options: [{ de: "Einmal täglich", en: "Once daily", correct: false }, { de: "Zweimal täglich", en: "Twice daily", correct: false }, { de: "Dreimal täglich", en: "Three times daily", correct: true }] },
     ],
     [{ de: "die Blutwerte", en: "blood test results" }, { de: "harmlos", en: "harmless" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Ist es etwas Ernstes?", translation: "Is it something serious?", order: 1, correctValue: "correct" },
-      { text: "Kann ich morgen wieder arbeiten?", translation: "Can I go back to work tomorrow?", order: 2, correctValue: "wrong" },
-      { text: "Brauche ich eine Impfung?", translation: "Do I need a vaccination?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Sie sind in der Apotheke. Was fragen Sie?", questionEnglish: "You're at the pharmacy. What do you ask?", options: [
+      { text: "Haben Sie etwas gegen Husten?", translation: "Do you have something for a cough?", correct: true },
+      { text: "Wo ist die nächste Arztpraxis?", translation: "Where is the nearest doctor?", correct: false },
+      { text: "Kann ich hier essen?", translation: "Can I eat here?", correct: false }
+    ] },
   );
 
   // ── Doctor B1 Module 10: At the Pharmacy ──
@@ -687,14 +703,11 @@ async function main() {
       { de: "Ist das Medikament rezeptfrei?", en: "Is the medication over-the-counter?", options: [{ de: "Ja", en: "Yes", correct: false }, { de: "Nein, es ist verschreibungspflichtig", en: "No, it's prescription-only", correct: true }] },
     ],
     [{ de: "rezeptfrei", en: "over-the-counter" }, { de: "die Versicherungskarte", en: "insurance card" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Guten Tag, ich habe ein Rezept vom Arzt.", order: 1 },
-      { text: "Bitte legen Sie Ihre Versicherungskarte dazu.", order: 2 },
-      { text: "Gibt es das Medikament auch rezeptfrei?", order: 3 },
-      { text: "Nein, dieses Medikament ist verschreibungspflichtig.", order: 4 },
-      { text: "Wie viel muss ich bezahlen?", order: 5 },
-    ],
+    { question: "Sie brauchen Schmerzmittel. Was sagen Sie?", questionEnglish: "You need painkillers. What do you say?", options: [
+      { text: "Ich hätte gern ein Schmerzmittel gegen Kopfschmerzen.", translation: "I'd like a painkiller for headaches.", correct: true },
+      { text: "Ich möchte ein Bier.", translation: "I'd like a beer.", correct: false },
+      { text: "Haben Sie Zeitungen?", translation: "Do you have newspapers?", correct: false }
+    ] },
   );
 
   addExperience(10, "Buying Painkillers", 2, "Doctor",
@@ -711,12 +724,11 @@ async function main() {
       { de: "Was soll der Patient vermeiden?", en: "What should the patient avoid?", options: [{ de: "Viel Wasser trinken", en: "Drinking plenty of water", correct: false }, { de: "Das Medikament auf leeren Magen nehmen", en: "Taking it on an empty stomach", correct: true }, { de: "Das Medikament mit Essen nehmen", en: "Taking it with food", correct: false }] },
     ],
     [{ de: "die Apothekerin", en: "pharmacist (female)" }, { de: "der Rat", en: "advice" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Haben Sie eine Empfehlung gegen Kopfschmerzen?", translation: "Do you have a recommendation for headaches?", order: 1, correctValue: "correct" },
-      { text: "Können Sie mir ein Rezept ausstellen?", translation: "Can you give me a prescription?", order: 2, correctValue: "wrong" },
-      { text: "Ich möchte eine Versicherung abschließen.", translation: "I'd like to take out insurance.", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Der Apotheker gibt Ihnen Medizin. Was fragen Sie?", questionEnglish: "The pharmacist gives you medicine. What do you ask?", options: [
+      { text: "Wie oft muss ich das Medikament einnehmen?", translation: "How often do I take the medication?", correct: true },
+      { text: "Schmeckt das gut?", translation: "Does it taste good?", correct: false },
+      { text: "Kann ich das zurückgeben?", translation: "Can I return it?", correct: false }
+    ] },
   );
 
   addExperience(10, "Understanding the Dosage", 2, "Doctor",
@@ -733,11 +745,16 @@ async function main() {
       { de: "Was soll der Patient vor Gebrauch machen?", en: "What should the patient do before use?", options: [{ de: "Die Flasche erwärmen", en: "Warm the bottle", correct: false }, { de: "Die Flasche schütteln", en: "Shake the bottle", correct: true }, { de: "Die Flasche öffnen und riechen", en: "Open and smell the bottle", correct: false }] },
     ],
     [{ de: "einnehmen", en: "to take (medication)" }, { de: "schütteln", en: "to shake" }],
-    "VOCAB_MATCH",
+    { question: "Der Arzt fragt nach Ihrer Familie. Was sagen Sie?", questionEnglish: "The doctor asks about your family. What do you say?", options: [
+      { text: "Mein Vater hatte Bluthochdruck.", translation: "My father had high blood pressure.", correct: true },
+      { text: "Meine Familie wohnt in Berlin.", translation: "My family lives in Berlin.", correct: false },
+      { text: "Ich habe keine Familie.", translation: "I don't have a family.", correct: false }
+    ] },
+    undefined,
     [
-      { text: "der Hustensaft", translation: "cough syrup", order: 1, correctValue: "syrup" },
-      { text: "einnehmen", translation: "to take", order: 2, correctValue: "take" },
-      { text: "schütteln", translation: "to shake", order: 3, correctValue: "shake" },
+      { text: "der Hustensaft", translation: "cough syrup", correctValue: "syrup" },
+      { text: "einnehmen", translation: "to take", correctValue: "take" },
+      { text: "schütteln", translation: "to shake", correctValue: "shake" }
     ],
   );
 
@@ -756,14 +773,11 @@ async function main() {
       { de: "Wie oft sollte der Patient zur Vorsorge?", en: "How often should the patient go for check-ups?", options: [{ de: "Alle sechs Monate", en: "Every six months", correct: false }, { de: "Einmal pro Jahr", en: "Once a year", correct: true }, { de: "Alle zwei Jahre", en: "Every two years", correct: false }] },
     ],
     [{ de: "kontrollieren", en: "to check" }, { de: "ausreichend", en: "sufficient" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Gibt es in Ihrer Familie erbliche Krankheiten?", order: 1 },
-      { text: "Mein Vater hatte Diabetes.", order: 2 },
-      { text: "Und meine Mutter hatte Bluthochdruck.", order: 3 },
-      { text: "Dann sollten wir regelmäßig Ihre Blutwerte kontrollieren.", order: 4 },
-      { text: "Einmal pro Jahr ist ausreichend.", order: 5 },
-    ],
+    { question: "Sie bereiten sich auf eine Operation vor. Wen fragen Sie?", questionEnglish: "You're preparing for surgery. Who do you ask?", options: [
+      { text: "Ich möchte mit dem Chirurgen über die Risiken sprechen.", translation: "I'd like to discuss the risks with the surgeon.", correct: true },
+      { text: "Ich möchte etwas essen.", translation: "I'd like to eat something.", correct: false },
+      { text: "Wann kann ich nach Hause?", translation: "When can I go home?", correct: false }
+    ] },
   );
 
   addExperience(11, "Preparing for Surgery Consultation", 3, "Doctor",
@@ -780,12 +794,11 @@ async function main() {
       { de: "Wie lange dauert der Eingriff?", en: "How long does the procedure take?", options: [{ de: "30 Minuten", en: "30 minutes", correct: false }, { de: "45 Minuten", en: "45 minutes", correct: true }, { de: "60 Minuten", en: "60 minutes", correct: false }] },
     ],
     [{ de: "der Meniskusriss", en: "meniscus tear" }, { de: "arthroskopisch", en: "arthroscopic" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Wie lange dauert der Heilungsprozess?", translation: "How long does the recovery process take?", order: 1, correctValue: "correct" },
-      { text: "Kann ich die OP verschieben?", translation: "Can I postpone the surgery?", order: 2, correctValue: "wrong" },
-      { text: "Haben Sie ein Rezept für Schmerzmittel?", translation: "Do you have a prescription for painkillers?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Sie sind unsicher über die Diagnose. Was machen Sie?", questionEnglish: "You're unsure about the diagnosis. What do you do?", options: [
+      { text: "Ich möchte eine Zweitmeinung einholen.", translation: "I'd like a second opinion.", correct: true },
+      { text: "Ich akzeptiere die Diagnose nicht.", translation: "I don't accept the diagnosis.", correct: false },
+      { text: "Können Sie mich operieren?", translation: "Can you operate on me?", correct: false }
+    ] },
   );
 
   addExperience(12, "Requesting a Second Opinion", 3, "Doctor",
@@ -802,11 +815,16 @@ async function main() {
       { de: "Was bietet der Arzt dem Patienten an?", en: "What does the doctor offer the patient?", options: [{ de: "Die Befunde zu kopieren", en: "To copy the findings", correct: true }, { de: "Einen Termin nächste Woche", en: "An appointment next week", correct: false }, { de: "Ein kostenloses Rezept", en: "A free prescription", correct: false }] },
     ],
     [{ de: "einholen", en: "to obtain" }, { de: "mitgeben", en: "to give along" }],
-    "VOCAB_MATCH",
+    { question: "Das Vorstellungsgespräch beginnt. Was sagen Sie?", questionEnglish: "The interview starts. What do you say?", options: [
+      { text: "Guten Tag, mein Name ist ... und ich freue mich auf das Gespräch.", translation: "Hello, my name is ... and I look forward to this.", correct: true },
+      { text: "Guten Tag, ich möchte ein Ticket kaufen.", translation: "Hello, I'd like to buy a ticket.", correct: false },
+      { text: "Wo ist die Toilette?", translation: "Where is the restroom?", correct: false }
+    ] },
+    undefined,
     [
-      { text: "die Zweitmeinung", translation: "second opinion", order: 1, correctValue: "opinion" },
-      { text: "der Befund", translation: "medical finding", order: 2, correctValue: "finding" },
-      { text: "die Unterlagen", translation: "documents", order: 3, correctValue: "documents" },
+      { text: "die Zweitmeinung", translation: "second opinion", correctValue: "opinion" },
+      { text: "der Befund", translation: "medical finding", correctValue: "finding" },
+      { text: "die Unterlagen", translation: "documents", correctValue: "documents" }
     ],
   );
 
@@ -825,14 +843,11 @@ async function main() {
       { de: "Was hat sie studiert?", en: "What did she study?", options: [{ de: "Informatik", en: "Computer science", correct: false }, { de: "Wirtschaftswissenschaften", en: "Economics", correct: true }, { de: "Medizin", en: "Medicine", correct: false }] },
     ],
     [{ de: "das Wirtschaftswissenschaften", en: "economics" }, { de: "der Deutschkurs", en: "German course" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Guten Tag, mein Name ist Anna Schmidt.", order: 1 },
-      { text: "Ich komme aus Spanien.", order: 2 },
-      { text: "Ich habe Wirtschaftswissenschaften studiert.", order: 3 },
-      { text: "Zurzeit mache ich einen Deutschkurs.", order: 4 },
-      { text: "Ich bin sehr motiviert, in Deutschland zu arbeiten.", order: 5 },
-    ],
+    { question: "Der Interviewer fragt nach Ihrer Arbeit. Was sagen Sie?", questionEnglish: "The interviewer asks about your work. What do you say?", options: [
+      { text: "Ich arbeite als Ingenieur bei einer deutschen Firma.", translation: "I work as an engineer at a German company.", correct: true },
+      { text: "Ich arbeite gar nicht.", translation: "I don't work.", correct: false },
+      { text: "Das ist ein Geheimnis.", translation: "That's a secret.", correct: false }
+    ] },
   );
 
   addExperience(13, "Talking About Your Current Job", 1, "Job Interview",
@@ -849,12 +864,11 @@ async function main() {
       { de: "Wie lange arbeitet sie dort?", en: "How long has she worked there?", options: [{ de: "Seit drei Monaten", en: "For three months", correct: false }, { de: "Seit einem Jahr", en: "For a year", correct: true }, { de: "Seit zwei Jahren", en: "For two years", correct: false }] },
     ],
     [{ de: "die Verkäuferin", en: "sales assistant (female)" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Was machen Sie beruflich?", translation: "What do you do for a living?", order: 1, correctValue: "correct" },
-      { text: "Wo wohnen Sie?", translation: "Where do you live?", order: 2, correctValue: "wrong" },
-      { text: "Wie alt sind Sie?", translation: "How old are you?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Was sind Ihre Stärken?", questionEnglish: "What are your strengths?", options: [
+      { text: "Ich bin organisiert, teamfähig und lerne schnell.", translation: "I'm organized, a team player, and learn fast.", correct: true },
+      { text: "Ich kann sehr gut schlafen.", translation: "I can sleep very well.", correct: false },
+      { text: "Ich komme immer zu spät.", translation: "I'm always late.", correct: false }
+    ] },
   );
 
   addExperience(13, "Describing Your Strengths", 1, "Job Interview",
@@ -871,11 +885,16 @@ async function main() {
       { de: "Wie arbeitet sie gerne?", en: "How does she like to work?", options: [{ de: "Alleine", en: "Alone", correct: false }, { de: "Im Team", en: "In a team", correct: true }, { de: "Von zu Hause", en: "From home", correct: false }] },
     ],
     [{ de: "freundlich", en: "friendly" }, { de: "das Team", en: "team" }],
-    "VOCAB_MATCH",
+    { question: "Der Interviewer stellt einfache Fragen. Was tun Sie?", questionEnglish: "The interviewer asks simple questions. What do you do?", options: [
+      { text: "Antworten Sie ruhig und ehrlich auf jede Frage.", translation: "Answer calmly and honestly.", correct: true },
+      { text: "Sagen Sie, dass Sie keine Fragen beantworten.", translation: "Say you won't answer questions.", correct: false },
+      { text: "Rufen Sie Ihren Anwalt an.", translation: "Call your lawyer.", correct: false }
+    ] },
+    undefined,
     [
-      { text: "die Stärke", translation: "strength", order: 1, correctValue: "strength" },
-      { text: "hilfsbereit", translation: "helpful", order: 2, correctValue: "helpful" },
-      { text: "freundlich", translation: "friendly", order: 3, correctValue: "friendly" },
+      { text: "die Stärke", translation: "strength", correctValue: "strength" },
+      { text: "hilfsbereit", translation: "helpful", correctValue: "helpful" },
+      { text: "freundlich", translation: "friendly", correctValue: "friendly" }
     ],
   );
 
@@ -894,14 +913,11 @@ async function main() {
       { de: "Wie viel Erfahrung hat Anna in der Branche?", en: "How much experience does Anna have in the industry?", options: [{ de: "Ein Jahr", en: "One year", correct: false }, { de: "Zwei Jahre", en: "Two years", correct: true }, { de: "Drei Jahre", en: "Three years", correct: false }] },
     ],
     [{ de: "der Ruf", en: "reputation" }, { de: "klingen", en: "to sound" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Warum möchten Sie bei uns arbeiten?", order: 1 },
-      { text: "Weil Ihre Firma einen sehr guten Ruf hat.", order: 2 },
-      { text: "Und die Arbeit klingt sehr interessant.", order: 3 },
-      { text: "Haben Sie Erfahrung in dieser Branche?", order: 4 },
-      { text: "Ja, ich habe zwei Jahre gearbeitet.", order: 5 },
-    ],
+    { question: "Sie möchten mehr über die Stelle wissen. Was fragen Sie?", questionEnglish: "You want to know more about the job. What do you ask?", options: [
+      { text: "Können Sie mir mehr über die täglichen Aufgaben erzählen?", translation: "Can you tell me about the daily tasks?", correct: true },
+      { text: "Gibt es kostenloses Essen?", translation: "Is there free food?", correct: false },
+      { text: "Muss ich am Wochenende arbeiten?", translation: "Do I have to work weekends?", correct: false }
+    ] },
   );
 
   addExperience(14, "Asking About the Job", 1, "Job Interview",
@@ -918,12 +934,11 @@ async function main() {
       { de: "Welche Arbeitszeiten hat die Stelle?", en: "What are the working hours?", options: [{ de: "8 bis 16 Uhr", en: "8 AM to 4 PM", correct: false }, { de: "9 bis 17 Uhr", en: "9 AM to 5 PM", correct: true }, { de: "10 bis 18 Uhr", en: "10 AM to 6 PM", correct: false }] },
     ],
     [{ de: "erzählen", en: "to tell" }, { de: "die Möglichkeit", en: "possibility/option" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Gibt es Homeoffice-Möglichkeiten?", translation: "Are there home office options?", order: 1, correctValue: "correct" },
-      { text: "Wie hoch ist das Gehalt?", translation: "How high is the salary?", order: 2, correctValue: "wrong" },
-      { text: "Wann bekomme ich Urlaub?", translation: "When do I get vacation?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Erzählen Sie von Ihrer Erfahrung.", questionEnglish: "Tell me about your experience.", options: [
+      { text: "Ich habe fünf Jahre Erfahrung in der Kundenkommunikation.", translation: "I have 5 years in client communication.", correct: true },
+      { text: "Ich habe noch nie gearbeitet.", translation: "I've never worked.", correct: false },
+      { text: "Erfahrung ist nicht wichtig.", translation: "Experience isn't important.", correct: false }
+    ] },
   );
 
   // ── Job Interview B1 Module 15: Experience & Skills ──
@@ -941,14 +956,11 @@ async function main() {
       { de: "Mit welcher Software hat sie gearbeitet?", en: "Which software has she worked with?", options: [{ de: "Excel und Word", en: "Excel and Word", correct: false }, { de: "Trello und Jira", en: "Trello and Jira", correct: true }, { de: "Photoshop und Illustrator", en: "Photoshop and Illustrator", correct: false }] },
     ],
     [{ de: "bisherig", en: "previous" }, { de: "die Kundenkommunikation", en: "client communication" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Erzählen Sie mir von Ihrer Berufserfahrung.", order: 1 },
-      { text: "Ich habe drei Jahre als Projektassistentin gearbeitet.", order: 2 },
-      { text: "Meine Hauptaufgaben waren Terminplanung und Kommunikation.", order: 3 },
-      { text: "Haben Sie Erfahrung mit Projektmanagement-Software?", order: 4 },
-      { text: "Ja, ich habe mit Trello und Jira gearbeitet.", order: 5 },
-    ],
+    { question: "Der Interviewer stellt eine schwierige Frage. Was tun Sie?", questionEnglish: "The interviewer asks a tough question. What do you do?", options: [
+      { text: "Nehmen Sie sich einen Moment Zeit und antworten Sie ruhig.", translation: "Take a moment and answer calmly.", correct: true },
+      { text: "Sagen Sie einfach 'Ich weiß nicht'.", translation: "Just say 'I don't know'.", correct: false },
+      { text: "Wechseln Sie das Thema.", translation: "Change the subject.", correct: false }
+    ] },
   );
 
   addExperience(15, "Handling Difficult Questions", 2, "Job Interview",
@@ -965,12 +977,11 @@ async function main() {
       { de: "Was bietet die neue Firma?", en: "What does the new company offer?", options: [{ de: "Höheres Gehalt", en: "Higher salary", correct: false }, { de: "Entwicklungschancen", en: "Development opportunities", correct: true }, { de: "Dienstwagen", en: "Company car", correct: false }] },
     ],
     [{ de: "sich weiterentwickeln", en: "to develop further" }, { de: "bieten", en: "to offer" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Ich wollte mich beruflich weiterentwickeln.", translation: "I wanted to develop professionally.", order: 1, correctValue: "correct" },
-      { text: "Mein Chef war nicht nett.", translation: "My boss was not nice.", order: 2, correctValue: "wrong" },
-      { text: "Die Arbeit war langweilig.", translation: "The work was boring.", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Was ist Ihr Gehaltswunsch?", questionEnglish: "What is your salary expectation?", options: [
+      { text: "Basierend auf meiner Erfahrung halte ich 55.000 Euro für angemessen.", translation: "Based on my experience, 55k is appropriate.", correct: true },
+      { text: "So viel wie möglich.", translation: "As much as possible.", correct: false },
+      { text: "Das ist mir egal.", translation: "I don't care.", correct: false }
+    ] },
   );
 
   addExperience(16, "Discussing Salary Expectations", 2, "Job Interview",
@@ -987,14 +998,11 @@ async function main() {
       { de: "Welche Zusatzleistung bietet die Firma?", en: "What additional benefit does the company offer?", options: [{ de: "Dienstwagen", en: "Company car", correct: false }, { de: "Zuschuss zur Kinderbetreuung", en: "Childcare subsidy", correct: true }, { de: "Kostenloses Mittagessen", en: "Free lunch", correct: false }] },
     ],
     [{ de: "angemessen", en: "appropriate" }, { de: "der Zuschuss", en: "subsidy" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Welche Gehaltsvorstellungen haben Sie?", order: 1 },
-      { text: "Ich habe mich über die übliche Vergütung informiert.", order: 2 },
-      { text: "45.000 Euro finde ich angemessen.", order: 3 },
-      { text: "Das liegt in unserem Budget.", order: 4 },
-      { text: "Wir zahlen auch einen Zuschuss zur Kinderbetreuung.", order: 5 },
-    ],
+    { question: "Das Angebot ist zu niedrig. Was sagen Sie?", questionEnglish: "The offer is too low. What do you say?", options: [
+      { text: "Können wir über das Gehalt verhandeln? Meine Qualifikationen rechtfertigen mehr.", translation: "Can we negotiate? My qualifications justify more.", correct: true },
+      { text: "Das ist in Ordnung, ich nehme es.", translation: "That's fine, I'll take it.", correct: false },
+      { text: "Dann suche ich mir etwas anderes.", translation: "Then I'll find something else.", correct: false }
+    ] },
   );
 
   // ── Job Interview B2 Module 17: Salary Negotiation ──
@@ -1012,12 +1020,11 @@ async function main() {
       { de: "Was bietet die Firma zusätzlich an?", en: "What does the company offer additionally?", options: [{ de: "Einen Dienstwagen", en: "A company car", correct: false }, { de: "Einen Leistungsbonus", en: "A performance bonus", correct: true }, { de: "Aktienoptionen", en: "Stock options", correct: false }] },
     ],
     [{ de: "erwarten", en: "to expect" }, { de: "jährlich", en: "annual" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Können wir über Bonuszahlungen sprechen?", translation: "Can we talk about bonus payments?", order: 1, correctValue: "correct" },
-      { text: "Das Gehalt ist zu niedrig.", translation: "The salary is too low.", order: 2, correctValue: "wrong" },
-      { text: "Ich muss mit meinem Anwalt sprechen.", translation: "I need to speak with my lawyer.", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Sie bekommen den Vertrag. Was prüfen Sie?", questionEnglish: "You receive the contract. What do you check?", options: [
+      { text: "Ich möchte die Kündigungsfrist und die Probezeit prüfen.", translation: "I'd like to check the notice period and probation.", correct: true },
+      { text: "Unterschreiben Sie einfach.", translation: "Just sign it.", correct: false },
+      { text: "Ist das Papier recycelt?", translation: "Is the paper recycled?", correct: false }
+    ] },
   );
 
   addExperience(17, "Discussing Contract Details", 3, "Job Interview",
@@ -1034,11 +1041,16 @@ async function main() {
       { de: "Ist die Probezeit verlängerbar?", en: "Is the probation period extendable?", options: [{ de: "Nein, nie", en: "No, never", correct: false }, { de: "In Ausnahmefällen ja", en: "In exceptional cases, yes", correct: true }, { de: "Ja, immer", en: "Yes, always", correct: false }] },
     ],
     [{ de: "durchlesen", en: "to read through" }, { de: "die Klausel", en: "clause" }],
-    "VOCAB_MATCH",
+    { question: "Sie werden nach Ihrer Technik gefragt. Was sagen Sie?", questionEnglish: "You're asked about your technical skills. What do you say?", options: [
+      { text: "Ich beherrsche Python, JavaScript und Datenbanken.", translation: "I'm proficient in Python, JS, and databases.", correct: true },
+      { text: "Ich kann sehr gut tippen.", translation: "I can type very fast.", correct: false },
+      { text: "Technik ist nicht mein Bereich.", translation: "Tech is not my area.", correct: false }
+    ] },
+    undefined,
     [
-      { text: "der Arbeitsvertrag", translation: "employment contract", order: 1, correctValue: "contract" },
-      { text: "die Probezeit", translation: "probation period", order: 2, correctValue: "probation" },
-      { text: "die Klausel", translation: "clause", order: 3, correctValue: "clause" },
+      { text: "der Arbeitsvertrag", translation: "employment contract", correctValue: "contract" },
+      { text: "die Probezeit", translation: "probation period", correctValue: "probation" },
+      { text: "die Klausel", translation: "clause", correctValue: "clause" }
     ],
   );
 
@@ -1056,14 +1068,11 @@ async function main() {
       { de: "Wie geht Anna mit Konflikten um?", en: "How does Anna handle conflicts?", options: [{ de: "Sie ignoriert sie", en: "She ignores them", correct: false }, { de: "Sie spricht offen mit allen", en: "She speaks openly with everyone", correct: true }, { de: "Sie geht zum Vorgesetzten", en: "She goes to the supervisor", correct: false }] },
     ],
     [{ de: "führen", en: "to lead" }, { de: "die Lösung", en: "solution" }],
-    "ARRANGE_DIALOGUE",
-    [
-      { text: "Wie führen Sie ein Team durch eine schwierige Phase?", order: 1 },
-      { text: "Zuerst würde ich die Probleme identifizieren.", order: 2 },
-      { text: "Dann würde ich klare Ziele setzen.", order: 3 },
-      { text: "Wie gehen Sie mit Konflikten um?", order: 4 },
-      { text: "Ich spreche offen mit allen Beteiligten.", order: 5 },
-    ],
+    { question: "Das Interview endet. Was sagen Sie?", questionEnglish: "The interview ends. What do you say?", options: [
+      { text: "Vielen Dank für das Gespräch. Ich freue mich auf Ihre Rückmeldung.", translation: "Thank you. I look forward to your response.", correct: true },
+      { text: "Endlich vorbei!", translation: "Finally over!", correct: false },
+      { text: "Kann ich jetzt gehen?", translation: "Can I leave now?", correct: false }
+    ] },
   );
 
   addExperience(18, "Closing the Interview", 3, "Job Interview",
@@ -1080,12 +1089,11 @@ async function main() {
       { de: "Mit wem arbeitet der neue Mitarbeiter nach der Einführung?", en: "Who does the new employee work with after the introduction?", options: [{ de: "Mit dem Chef", en: "With the boss", correct: false }, { de: "Mit einem Mentor", en: "With a mentor", correct: true }, { de: "Alleine", en: "Alone", correct: false }] },
     ],
     [{ de: "umfassend", en: "comprehensive" }, { de: "strukturiert", en: "structured" }],
-    "BEST_RESPONSE",
-    [
-      { text: "Wie sieht der Einarbeitungsplan aus?", translation: "What does the onboarding plan look like?", order: 1, correctValue: "correct" },
-      { text: "Wann bekomme ich meine erste Gehaltserhöhung?", translation: "When do I get my first raise?", order: 2, correctValue: "wrong" },
-      { text: "Kann ich nächste Woche Urlaub nehmen?", translation: "Can I take vacation next week?", order: 3, correctValue: "wrong" },
-    ],
+    { question: "Was machen Sie zuerst am Automaten?", questionEnglish: "What do you do first at the machine?", options: [
+      { text: "Drücken Sie auf 'Fahrkarte kaufen'.", translation: "Press 'Buy ticket'.", correct: true },
+      { text: "Rufen Sie den Techniker an.", translation: "Call the technician.", correct: false },
+      { text: "Gehen Sie zum nächsten Automaten.", translation: "Go to the next machine.", correct: false }
+    ] },
   );
 
   // ── INSERT ALL DATA ──
