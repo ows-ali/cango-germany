@@ -1,14 +1,11 @@
-import { getToken } from "next-auth/jwt";
+import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET });
-  if (!token) {
+export default auth((req) => {
+  if (!req.auth) {
     return NextResponse.redirect(new URL("/auth", req.url));
   }
-  return NextResponse.next();
-}
+});
 
 export const config = {
   matcher: ["/((?!auth|_next|api/auth|favicon.ico|manifest|sw.js|images).*)"],
