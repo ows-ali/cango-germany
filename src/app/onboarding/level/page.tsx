@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { Logo } from "@/components/Logo";
 
 const LEVELS = [
   { id: "A2", name: "Pre-Intermediate", desc: "Can understand sentences and frequently used expressions." },
@@ -35,10 +36,7 @@ export default function LevelPage() {
   return (
     <div className="bg-background text-on-background min-h-screen flex flex-col">
       <header className="bg-surface flex justify-between items-center w-full px-4 md:px-16 max-w-[1280px] mx-auto h-16 sticky top-0 z-50">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect x="6" y="6" width="20" height="20" rx="2" stroke="#091426" strokeWidth="3" />
-          <path d="M16 6V26" stroke="#091426" strokeWidth="3" />
-        </svg>
+        <Logo size={32} />
         <div className="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center text-secondary">
           <span className="material-symbols-outlined">person</span>
         </div>

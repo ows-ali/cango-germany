@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useStats } from "@/lib/stats-context";
+import { Logo } from "@/components/Logo";
 
 interface TranscriptLine {
   id: number; germanText: string; englishText: string;
@@ -280,10 +281,7 @@ export default function ExperiencePlayerPage() {
           <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-variant transition-colors">
             <span className="material-symbols-outlined text-on-surface">close</span>
           </button>
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <rect x="6" y="6" width="20" height="20" rx="2" stroke="#1e293b" strokeWidth="3" />
-            <path d="M16 6V26" stroke="#1e293b" strokeWidth="3" />
-          </svg>
+          <Logo size={32} />
           <div className="flex flex-col">
             <span className="text-xs text-on-surface-variant">Experience</span>
           </div>

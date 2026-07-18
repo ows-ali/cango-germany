@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Logo";
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -14,10 +15,7 @@ export default function WelcomePage() {
       </div>
 
       <header className="relative z-30 pt-12 px-4 md:px-16 flex justify-center w-full" style={{ animation: "fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards" }}>
-        <svg width="56" height="56" viewBox="0 0 32 32" fill="none" className="mix-blend-multiply brightness-50 contrast-125">
-          <rect x="6" y="6" width="20" height="20" rx="2" stroke="white" strokeWidth="3" />
-          <path d="M16 6V26" stroke="white" strokeWidth="3" />
-        </svg>
+        <Logo size={56} />
       </header>
 
       <div className="relative z-30 flex flex-col items-center justify-center px-6 text-center max-w-3xl mx-auto flex-grow" style={{ animation: "fadeIn 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s both" }}>

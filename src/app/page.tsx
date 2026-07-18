@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { Logo } from "@/components/Logo";
 
 export default function WelcomePage() {
   const [mounted, setMounted] = useState(false);
@@ -67,10 +68,7 @@ export default function WelcomePage() {
       <canvas ref={canvasRef} className="absolute inset-0 z-20 pointer-events-none opacity-30" />
 
       <header className="relative z-30 pt-12 px-margin-mobile flex justify-center w-full animate-fade-in">
-        <svg width="56" height="56" viewBox="0 0 32 32" fill="none" className="opacity-80">
-          <rect x="6" y="6" width="20" height="20" rx="2" stroke="white" strokeWidth="3" />
-          <path d="M16 6V26" stroke="white" strokeWidth="3" />
-        </svg>
+        <Logo size={182} className="opacity-100" />
       </header>
 
       <div className="relative z-30 flex flex-col items-center justify-center px-6 text-center max-w-3xl mx-auto flex-grow animate-fade-in" style={{ animationDelay: "0.5s" }}>

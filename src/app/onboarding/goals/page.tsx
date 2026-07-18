@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Logo";
 
 const GOALS = [
   { key: "study", label: "Study", icon: "school" },
@@ -25,10 +26,7 @@ export default function GoalsPage() {
   return (
     <div className="bg-background text-on-background min-h-screen flex flex-col items-center overflow-x-hidden">
       <header className="w-full max-w-[1280px] flex justify-between items-center px-4 md:px-16 py-4 h-16">
-        <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-          <rect x="6" y="6" width="20" height="20" rx="2" stroke="#091426" strokeWidth="3" />
-          <path d="M16 6V26" stroke="#091426" strokeWidth="3" />
-        </svg>
+        <Logo size={32} />
         <button onClick={() => router.push("/onboarding/level")} className="text-on-surface-variant hover:text-primary transition-colors font-medium text-sm">
           Skip
         </button>

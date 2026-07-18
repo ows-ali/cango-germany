@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { Logo } from "@/components/Logo";
 
 export default function AuthPage() {
   const [mode, setMode] = useState<"login" | "signup">("signup");
@@ -37,10 +38,7 @@ export default function AuthPage() {
   return (
     <div className="bg-background text-on-background min-h-screen flex flex-col overflow-x-hidden selection:bg-secondary-container selection:text-on-secondary-container">
       <header className="relative z-10 w-full flex flex-col items-center py-12">
-        <svg width="64" height="64" viewBox="0 0 32 32" fill="none" className="mb-4">
-          <rect x="6" y="6" width="20" height="20" rx="2" stroke="#091426" strokeWidth="3" />
-          <path d="M16 6V26" stroke="#091426" strokeWidth="3" />
-        </svg>
+        <Logo size={100} className="" />
         <h1 className="text-2xl font-bold text-primary" style={{ fontFamily: "Manrope, sans-serif" }}>
           CanGo
         </h1>
