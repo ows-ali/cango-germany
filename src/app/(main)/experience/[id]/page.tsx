@@ -173,8 +173,13 @@ export default function ExperiencePlayerPage() {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-on-surface-variant">Loading...</p>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-[1200px] mx-auto px-margin-mobile py-6 animate-pulse space-y-6">
+          <div className="h-48 bg-surface-container-highest rounded-2xl" />
+          <div className="h-32 bg-white rounded-2xl border border-outline-variant/30" />
+          <div className="h-64 bg-white rounded-2xl border border-outline-variant/30" />
+          <div className="h-40 bg-white rounded-2xl border border-outline-variant/30" />
+        </div>
       </div>
     );
   }

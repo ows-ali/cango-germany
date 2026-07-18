@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useContent } from "@/lib/content-context";
 
 interface Scenario {
   id: number;
@@ -13,6 +14,7 @@ interface Scenario {
 }
 
 const LEVEL_MAP: Record<string, number> = { A2: 1, B1: 2, B2: 3 };
+const REVERSE_LEVEL_MAP: Record<number, string> = { 1: "A2", 2: "B1", 3: "B2" };
 const HERO_IMAGES: Record<string, string> = {
   transportation: "/images/scenario-transportation.jpg",
   doctor: "/images/scenario-doctor.jpg",
@@ -20,25 +22,38 @@ const HERO_IMAGES: Record<string, string> = {
 };
 
 export default function HomePage() {
-  const { data: session } = useSession();
-  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const { data: session, status } = useSession();
+  const { content: rawScenarios, loaded } = useContent();
+  const scenarios = (rawScenarios as Scenario[]) || [];
   const [userLevel, setUserLevel] = useState<string>("B1");
+  const [scenarioLevels, setScenarioLevels] = useState<Record<number, string>>({});
 
   useEffect(() => {
-    fetch("/api/content").then((r) => r.json()).then(setScenarios).catch(() => {});
-    if (session?.user?.id) {
-      fetch("/api/user/profile").then((r) => r.json()).then((u) => {
-        if (u.cefrLevel) setUserLevel(u.cefrLevel);
-      }).catch(() => {});
+    if (status !== "authenticated") return;
+    fetch("/api/user/profile").then((r) => r.json()).then((u) => {
+      if (u.cefrLevel) setUserLevel(u.cefrLevel);
+    }).catch(() => {});
+    if (scenarios.length > 0) {
+      const ids = scenarios.map((s) => s.id).join(",");
+      fetch(`/api/user/scenario-setting/batch?ids=${ids}`)
+        .then((r) => r.json())
+        .then((res) => {
+          const map: Record<number, string> = {};
+          for (const [id, data] of Object.entries(res)) {
+            const levelId = (data as { selectedLevelId: number | null }).selectedLevelId;
+            if (levelId && REVERSE_LEVEL_MAP[levelId]) map[Number(id)] = REVERSE_LEVEL_MAP[levelId];
+          }
+          setScenarioLevels(map);
+        }).catch(() => {});
     }
-  }, [session]);
+  }, [status, scenarios.length]);
 
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-[1280px] mx-auto px-margin-mobile py-6 pb-24">
         <section className="mb-8">
           <h1 className="font-headline text-3xl md:text-4xl text-on-surface mb-1">Guten Morgen!</h1>
-          <p className="text-lg text-on-surface-variant">Ready to master your German scenarios today?</p>
+          <p className="text-lg text-on-surface">Ready to master your German scenarios today?</p>
         </section>
 
         {/* Daily Goal */}
@@ -66,9 +81,17 @@ export default function HomePage() {
         <section className="space-y-6">
           <h3 className="font-headline text-2xl text-on-surface">My Germany</h3>
 
-          {scenarios.length === 0 && (
-            <div className="text-center py-12 text-on-surface-variant">
-              <p>Loading scenarios...</p>
+          {!loaded && scenarios.length === 0 && (
+            <div className="space-y-6 animate-pulse">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-white rounded-xl overflow-hidden shadow-sm border border-outline-variant/30">
+                  <div className="h-40 bg-surface-container-highest" />
+                  <div className="p-4 space-y-3">
+                    <div className="h-5 bg-surface-container-highest rounded w-1/3" />
+                    <div className="h-4 bg-surface-container-highest rounded w-2/3" />
+                  </div>
+                </div>
+              ))}
             </div>
           )}
 
@@ -79,7 +102,7 @@ export default function HomePage() {
                   <img src={HERO_IMAGES[s.slug] || "/images/onboarding-bg.jpg"} alt={s.name} className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                   <div className="absolute top-3 left-3 bg-white/90 px-2 py-1 rounded text-[10px] font-bold text-primary border border-surface-container">
-                    {userLevel}
+                    {scenarioLevels[s.id] || userLevel}
                   </div>
                 </div>
                 <div className="p-4">

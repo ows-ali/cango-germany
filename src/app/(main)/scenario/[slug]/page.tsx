@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useStats } from "@/lib/stats-context";
+import { useContent } from "@/lib/content-context";
 
 interface ScenarioData {
   id: number;
@@ -37,40 +38,70 @@ const HERO_IMAGES: Record<string, string> = {
 
 export default function ScenarioDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { refreshStats } = useStats();
+  const { content: rawData, getScenarioBySlug, loaded } = useContent();
+  const found = getScenarioBySlug(slug) as ScenarioData | null;
   const [data, setData] = useState<ScenarioData | null>(null);
   const [activeLevel, setActiveLevel] = useState(2);
   const [expProgress, setExpProgress] = useState<Record<number, { completed: boolean; lessonXpClaimed: boolean; bonusXpClaimed: boolean }>>({});
+  const [showLevelDropdown, setShowLevelDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/content").then((r) => r.json()).then((all) => {
-      const found = all.find((s: { slug: string }) => s.slug === slug);
-      setData(found || null);
-      // After data loads, collect all experience IDs and fetch progress
-      const expIds = new Set<number>();
-      found?.levels?.forEach((l: { modules: { experiences: { id: number }[] }[] }) =>
-        l.modules.forEach((m: { experiences: { id: number }[] }) =>
-          m.experiences.forEach((e: { id: number }) => expIds.add(e.id))
-        )
-      );
-      if (expIds.size > 0) {
-        fetch(`/api/user/experience/progress/batch?ids=${[...expIds].join(",")}`)
-          .then((r) => r.json()).then(setExpProgress).catch(() => {});
-      }
+    if (found) setData(found);
+  }, [found]);
+
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    if (!data) return;
+
+    // Resolve level once: saved setting > profile CEFR > default B1
+    let levelId = 2;
+    Promise.all([
+      fetch(`/api/user/scenario-setting?scenarioId=${data.id}`).then((r) => r.json()),
+      fetch("/api/user/profile").then((r) => r.json()),
+    ]).then(([settingRes, profileRes]) => {
+      levelId = settingRes.selectedLevelId || LEVEL_MAP[profileRes.cefrLevel] || 2;
+      setActiveLevel(levelId);
     }).catch(() => {});
-    if (session?.user?.id) {
-      fetch("/api/user/profile").then((r) => r.json()).then((u) => {
-        if (u.cefrLevel && LEVEL_MAP[u.cefrLevel]) setActiveLevel(LEVEL_MAP[u.cefrLevel]);
-      }).catch(() => {});
-      refreshStats();
+
+    // Collect all experience IDs and fetch progress
+    const expIds = new Set<number>();
+    data.levels?.forEach((l: { modules: { experiences: { id: number }[] }[] }) =>
+      l.modules.forEach((m: { experiences: { id: number }[] }) =>
+        m.experiences.forEach((e: { id: number }) => expIds.add(e.id))
+      )
+    );
+    if (expIds.size > 0) {
+      fetch(`/api/user/experience/progress/batch?ids=${[...expIds].join(",")}`)
+        .then((r) => r.json()).then(setExpProgress).catch(() => {});
     }
-  }, [slug, session]);
+    refreshStats();
+  }, [status, data]);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowLevelDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-on-surface-variant">Loading...</p>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-[1280px] mx-auto px-margin-mobile py-6 animate-pulse space-y-6">
+          <div className="h-48 bg-surface-container-highest rounded-xl" />
+          <div className="h-20 bg-surface-container rounded-xl" />
+          <div className="space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-24 bg-white rounded-xl border border-outline-variant/30" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -89,18 +120,36 @@ export default function ScenarioDetailPage() {
             <Link href="/home" className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md text-white flex items-center justify-center hover:bg-white/20 transition-colors">
               <span className="material-symbols-outlined">arrow_back</span>
             </Link>
-            <button
-              onClick={() => {
-                const levels = data.levels || [];
-                const idx = levels.findIndex((l) => l.level.id === activeLevel);
-                const next = (idx + 1) % levels.length;
-                setActiveLevel(levels[next].level.id);
-              }}
-              className="bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 flex items-center gap-2 border border-white/20 text-white cursor-pointer hover:bg-white/20 transition-colors"
-            >
-              <span className="text-xs font-semibold">{levelLabel}</span>
-              <span className="material-symbols-outlined text-[18px]">expand_more</span>
-            </button>
+            <div ref={dropdownRef} className="relative">
+              <button
+                onClick={() => setShowLevelDropdown(!showLevelDropdown)}
+                className="bg-white/10 backdrop-blur-md rounded-full px-4 py-1.5 flex items-center gap-2 border border-white/20 text-white cursor-pointer hover:bg-white/20 transition-colors"
+              >
+                <span className="text-xs font-semibold">{levelLabel}</span>
+                <span className="material-symbols-outlined text-[18px]">expand_more</span>
+              </button>
+              {showLevelDropdown && (
+                <div className="absolute top-full right-0 mt-2 bg-white rounded-xl shadow-xl border border-outline-variant/30 overflow-hidden z-50 min-w-[120px]">
+                  {data.levels.map((l) => (
+                    <button
+                      key={l.level.id}
+                      onClick={() => {
+                        setActiveLevel(l.level.id);
+                        setShowLevelDropdown(false);
+                        fetch("/api/user/scenario-setting", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({ scenarioId: data.id, levelId: l.level.id }),
+                        }).catch(() => {});
+                      }}
+                      className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-surface-container-higher transition-colors ${l.level.id === activeLevel ? "bg-primary/10 text-primary" : "text-on-surface"}`}
+                    >
+                      {l.level.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div>
             <h1 className="font-headline text-3xl md:text-4xl text-white mb-2">{data.name}</h1>
@@ -118,6 +167,17 @@ export default function ScenarioDetailPage() {
           </div>
         </div>
       </header>
+
+      {/* Per-scenario level info banner */}
+      <section className="max-w-[1280px] mx-auto px-margin-mobile pt-4 pb-0">
+        <div className="bg-surface-container rounded-xl p-3 flex items-start gap-3 border border-outline-variant/30">
+          <span className="material-symbols-outlined text-primary text-lg mt-0.5 shrink-0">info</span>
+          <div>
+            <p className="text-sm text-on-surface font-semibold">Learn at your own comfort</p>
+            <p className="text-sm text-on-surface">Set a different CEFR level for each scenario. Tap the level badge above to switch.</p>
+          </div>
+        </div>
+      </section>
 
       {/* Content */}
       <section className="max-w-[1280px] mx-auto px-margin-mobile py-6">
