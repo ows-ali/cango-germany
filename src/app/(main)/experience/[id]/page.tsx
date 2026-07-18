@@ -209,10 +209,10 @@ export default function ExperiencePlayerPage() {
 
     const p2 = bonusReady && !isReview
       ? fetch("/api/user/experience/bonus-complete", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ experienceId: data.id }),
-        }).then((r) => r.json()).then((res) => { if (res.bonusXpAwarded) setBonusDone(true); })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ experienceId: data.id }),
+      }).then((r) => r.json()).then((res) => { if (res.bonusXpAwarded) setBonusDone(true); })
       : Promise.resolve();
 
     Promise.all([p1, p2]).then(([res]) => {
@@ -263,9 +263,7 @@ export default function ExperiencePlayerPage() {
         <section className="w-full space-y-6">
           <div className="relative w-full aspect-video md:aspect-[21/9] rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-primary-container to-primary">
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-            <button onClick={speakGerman} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white/20 backdrop-blur-md text-white rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition-transform">
-              <span className="material-symbols-outlined text-4xl" style={{ fontVariationSettings: "'FILL' 1" }}>play_arrow</span>
-            </button>
+
             <div className="absolute bottom-4 left-4">
               <h2 className="font-headline text-2xl text-white drop-shadow-lg">{data.title}</h2>
               <p className="text-white/80 text-sm">{data.duration}</p>
