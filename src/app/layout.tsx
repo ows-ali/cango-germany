@@ -13,6 +13,7 @@ export const metadata: Metadata = {
     title: "CanGo",
   },
   icons: {
+    icon: "/icons/icon-192x192.png",
     apple: [
       { url: "/icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],

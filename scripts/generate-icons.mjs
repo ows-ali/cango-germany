@@ -1,13 +1,10 @@
 import sharp from "sharp";
-import { readFileSync, writeFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const svgPath = resolve(__dirname, "..", "public", "icons", "icon.svg");
+const sourcePath = resolve(__dirname, "..", "public", "icons", "icon.png");
 const outDir = resolve(__dirname, "..", "public", "icons");
-
-const svgBuffer = readFileSync(svgPath);
 
 const sizes = [
   { name: "icon-192x192.png", size: 192 },
@@ -17,7 +14,7 @@ const sizes = [
 
 for (const { name, size } of sizes) {
   const outputPath = resolve(outDir, name);
-  await sharp(svgBuffer).resize(size, size).png().toFile(outputPath);
+  await sharp(sourcePath).resize(size, size).png().toFile(outputPath);
   console.log(`Generated ${name} (${size}x${size})`);
 }
 
