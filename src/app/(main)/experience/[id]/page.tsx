@@ -573,8 +573,8 @@ export default function ExperiencePlayerPage() {
 
             {activeTab === 2 && (
               <div className="space-y-2">
-                {bestShuffled.length === 0 ? (
-                  <p className="text-xs text-on-surface-variant text-center py-4">No best response available</p>
+                {bestShuffled.length === 0 || !bestChallenge ? (
+                  <p className="text-xs text-on-surface-variant text-center py-4">No best response challenge available</p>
                 ) : (
                   <>
                     {bestChallenge.question && (

@@ -1,6 +1,33 @@
 # CanGo — Learn German for Real Life
 
-A PWA for learning German through realistic scenarios for life in Germany.
+**CanGo** is a modern, AI-powered Progressive Web App (PWA) that teaches
+German through realistic, scenario-based conversations. Built on a
+modern AI stack — Next.js 16, TypeScript, Tailwind CSS v4, Drizzle ORM,
+NextAuth.js, and Supabase — with offline-first support via IndexedDB and
+speech synthesis for authentic pronunciation practice.
+
+- **Prototype:** [Prototype by Google Stitch](https://stitch.withgoogle.com/preview/205405448292237550?node-id=88c0e749cfc44e6ebd7d17ce16426edb)
+- **PRD:** [PRD.md](./PRD.md)
+
+
+## Built With
+
+- **AI Coding Assistant:** Opencode, Antigravity
+- **AI Models:** DeepSeek, Gemini
+- **Prototyping:** Google Stitch
+- **Image Generation:** Nano Banana
+
+## Features
+
+- Real-world scenarios: transportation, doctor visits, job interviews
+- Adaptive CEFR levels (A2 → B1 → B2)
+- Interactive challenges: MCQs, matching, dialogue ordering, best-response
+- PWA: installable with offline support via service worker
+- Speech synthesis for German pronunciation practice
+- Streak tracking and XP rewards
+- Supabase + NextAuth credentials authentication
+
+---
 
 ## Setup
 
