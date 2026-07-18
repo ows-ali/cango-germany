@@ -372,18 +372,22 @@ Every German word is interactive.
 
 Every experience contains:
 
-### Type 1: Multiple Choice
+### Type 1: Multiple Choice (2-3 per experience)
 
 *Example:*
 
-**Question:** Why was the train delayed?
+**Question (German):** Warum hatte der Zug Verspätung?
+**Question (English):** Why was the train delayed?
 
 **Answers:**
-- Weather
-- Technical problem
-- Driver issue
+- Schlechtes Wetter (Weather)
+- Technisches Problem (Technical problem) ✓
+- Personalmangel (Staff shortage)
 
-### Type 2: Matching
+Each word in German text is hoverable/tappable for translation.
+English text does not have word entries in the dictionary.
+
+### Type 2: Matching (1 per experience)
 
 *Example:*
 
@@ -391,9 +395,9 @@ Every experience contains:
 - Verspätung → Delay
 - Gleis → Platform
 
-### Type 3: Real Life Challenge
+Stored in `question_options` table as German-English pairs. The `correct` boolean field is unused for matching questions.
 
-Optional bonus activity.
+### Type 3: Real Life Challenge (3 tabs always shown)
 
 ---
 
@@ -408,9 +412,15 @@ Optional bonus activity.
 - **Vocabulary Match** — Match words and meanings.
 
 **Rules:**
-- User can explore all challenge types
-- Only one bonus completion gives XP
+- All 3 challenge types are always visible as tabs in the sidebar
+- User can freely toggle between them and check answers
+- Each challenge has a check/submit mechanism with correct/incorrect feedback
+- User can skip all challenges and submit the lesson for 50 XP
+- Bonus XP (+20) is given for completing any one challenge
+- Only one bonus completion gives XP per experience
 - Replaying lessons does not give normal XP again
+
+**Storage:** Challenges have their own dedicated tables (`challenges`, `challenge_items`). Each experience has exactly 1 challenge row (the 3 types are UI toggles, not separate DB records).
 
 ---
 
@@ -556,6 +566,7 @@ Fields:
 - slug
 - description
 - image
+- order (for display sorting)
 
 
 Examples:
@@ -799,14 +810,12 @@ Fields:
 - order
 
 
-Types:
+Types (MVP):
 
 
-MCQ
+MCQ — Uses `question_options` with `correct` boolean
 
-MATCHING
-
-CHALLENGE
+MATCHING — Uses `question_options` as German-English pairs (`correct` field unused)
 
 
 ---
@@ -825,7 +834,7 @@ Fields:
 - question_id
 - german_text
 - english_text
-- correct
+- correct (boolean; used for MCQ, unused for MATCHING)
 
 
 ---
@@ -843,7 +852,6 @@ Fields:
 - id
 - experience_id
 - type
-- instruction
 
 
 Types:
@@ -1353,5 +1361,41 @@ The product should make users say:
 "I can actually use this in Germany."
 
 ---
+
+---
+
+# Appendix: Final Schema Decisions (v0.1)
+
+These decisions were finalized during schema review and override any earlier ambiguity.
+
+## Content Tables
+
+| Table | Decisions |
+|---|---|
+| **scenarios** | Added `order` field for display sorting |
+| **modules** | Icons assigned by UI based on title (not stored in DB) |
+| **experiences** | `duration` stored as string ("3:50"), `xp_reward` = 50 |
+| **transcript_lines** | No `speaker` field (MVP simplification) |
+| **words** | Duplicate `german_word` entries allowed with different `english_translation` per context; no `part_of_speech` field |
+| **questions** | `type` = `MCQ` or `MATCHING` only. Each experience has 2-3 MCQ + 1 Matching |
+| **question_options** | For MCQ: `correct` boolean indicates right answer. For MATCHING: each row is a German-English pair, `correct` unused |
+| **challenges** | `instruction` field omitted — UI displays instruction text based on `type`. Each experience has 1 challenge row; the 3 tabs (Best Response / Arrange Dialogue / Vocabulary Match) are UI toggles |
+
+## User Tables
+
+| Table | Decisions |
+|---|---|
+| **user_experience_progress** | `lesson_xp_claimed` = 50 base XP, `bonus_xp_claimed` = 20 extra XP (hardcoded) |
+| **user_activity** | Tracks daily XP for streak calculation (3-day grace period) |
+| **user_vocabulary** | Only manual add — no auto-detection |
+
+## Per-Experience Structure (Final)
+
+Every experience contains:
+- 1 audio file (generated via edge-tts, German neural voice)
+- 4-6 transcript lines (German + English)
+- 2-3 MCQ questions (bilingual, with hoverable German words)
+- 1 Matching exercise (German-English pairs)
+- 3 Real Life Challenge tabs (all visible, user chooses any one for bonus XP)
 
 # End of CanGo PRD v0.1
