@@ -69,6 +69,8 @@ export default function ExperiencePlayerPage() {
   // Vocab Match challenge
   const [vocabMatchPairs, setVocabMatchPairs] = useState<{ item: ChallengeItem; matched: boolean }[]>([]);
   const [vocabSelected, setVocabSelected] = useState<string | null>(null);
+  const [vocabLeftOrder, setVocabLeftOrder] = useState<number[]>([]);
+  const [vocabRightOrder, setVocabRightOrder] = useState<number[]>([]);
 
   // Arrange Dialogue challenge
   const [arrangeOrder, setArrangeOrder] = useState<number[]>([]);
@@ -94,7 +96,11 @@ export default function ExperiencePlayerPage() {
       const chal = d.challenges?.[0];
       if (chal) {
         if (chal.type === "VOCAB_MATCH") {
-          setVocabMatchPairs(chal.items.map((i: ChallengeItem) => ({ item: i, matched: false })));
+          const pairs = chal.items.map((i: ChallengeItem) => ({ item: i, matched: false }));
+          setVocabMatchPairs(pairs);
+          const indices = pairs.map((_: unknown, i: number) => i);
+          setVocabLeftOrder([...indices].sort(() => Math.random() - 0.5));
+          setVocabRightOrder([...indices].sort(() => Math.random() - 0.5));
         }
         if (chal.type === "ARRANGE_DIALOGUE") {
           setArrangeShuffled([...chal.items].sort(() => Math.random() - 0.5));
@@ -433,34 +439,40 @@ export default function ExperiencePlayerPage() {
                   <>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        {vocabMatchPairs.map((vp) => (
-                          <button
-                            key={vp.item.id}
-                            onClick={() => { if (!vp.matched) setVocabSelected(vp.item.text); }}
-                            className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${vp.matched ? "border-green-500 bg-green-50 text-green-800" : vocabSelected === vp.item.text ? "border-primary bg-primary/5" : "border-outline-variant bg-white hover:border-primary"}`}
-                          >
-                            {vp.item.text}
-                          </button>
-                        ))}
+                        {vocabLeftOrder.map((idx) => {
+                          const vp = vocabMatchPairs[idx];
+                          return (
+                            <button
+                              key={vp.item.id}
+                              onClick={() => { if (!vp.matched) setVocabSelected(vp.item.text); }}
+                              className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${vp.matched ? "border-green-500 bg-green-50 text-green-800" : vocabSelected === vp.item.text ? "border-primary bg-primary/5" : "border-outline-variant bg-white hover:border-primary"}`}
+                            >
+                              {vp.item.text}
+                            </button>
+                          );
+                        })}
                       </div>
                       <div className="space-y-2">
-                        {vocabMatchPairs.map((vp) => (
-                          <button
-                            key={vp.item.id + "-en"}
-                            onClick={() => {
-                              if (!vocabSelected || vp.matched) return;
-                              const selectedItem = vocabMatchPairs.find((p) => p.item.text === vocabSelected);
-                              if (selectedItem && selectedItem.item.correctValue === vp.item.correctValue) {
-                                setVocabMatchPairs((prev) => prev.map((p) => p.item.id === selectedItem.item.id || p.item.id === vp.item.id ? { ...p, matched: true } : p));
-                              }
-                              setVocabSelected(null);
-                            }}
-                            disabled={vp.matched}
-                            className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${vp.matched ? "border-green-500 bg-green-50 text-green-800" : "border-outline-variant bg-white hover:border-primary"}`}
-                          >
-                            {vp.item.translation}
-                          </button>
-                        ))}
+                        {vocabRightOrder.map((idx) => {
+                          const vp = vocabMatchPairs[idx];
+                          return (
+                            <button
+                              key={vp.item.id + "-en"}
+                              onClick={() => {
+                                if (!vocabSelected || vp.matched) return;
+                                const selectedItem = vocabMatchPairs.find((p) => p.item.text === vocabSelected);
+                                if (selectedItem && selectedItem.item.correctValue === vp.item.correctValue) {
+                                  setVocabMatchPairs((prev) => prev.map((p) => p.item.id === selectedItem.item.id || p.item.id === vp.item.id ? { ...p, matched: true } : p));
+                                }
+                                setVocabSelected(null);
+                              }}
+                              disabled={vp.matched}
+                              className={`w-full p-3 rounded-lg border text-left text-sm transition-colors ${vp.matched ? "border-green-500 bg-green-50 text-green-800" : "border-outline-variant bg-white hover:border-primary"}`}
+                            >
+                              {vp.item.translation}
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </>

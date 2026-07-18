@@ -51,13 +51,21 @@ export async function POST(req: Request) {
       .where(eq(userStats.userId, uid));
 
     const today = new Date().toISOString().slice(0, 10);
-    await tx
-      .insert(userActivity)
-      .values({ userId: uid, date: today, xpEarned: BONUS_XP })
-      .onConflictDoUpdate({
-        target: [userActivity.userId, userActivity.date],
-        set: { xpEarned: sql`${userActivity.xpEarned} + ${BONUS_XP}` },
-      });
+    const [existingActivity] = await tx
+      .select()
+      .from(userActivity)
+      .where(and(eq(userActivity.userId, uid), eq(userActivity.date, today)))
+      .limit(1);
+    if (existingActivity) {
+      await tx
+        .update(userActivity)
+        .set({ xpEarned: sql`${userActivity.xpEarned} + ${BONUS_XP}` })
+        .where(and(eq(userActivity.userId, uid), eq(userActivity.date, today)));
+    } else {
+      await tx
+        .insert(userActivity)
+        .values({ userId: uid, date: today, xpEarned: BONUS_XP });
+    }
   });
 
   return NextResponse.json({ bonusXpAwarded: true });

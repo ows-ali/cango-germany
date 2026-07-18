@@ -45,7 +45,9 @@ export const userActivity = pgTable("user_activity", {
   userId: text("user_id").notNull().references(() => users.id),
   date: date("date").notNull(),
   xpEarned: integer("xp_earned").default(0).notNull(),
-});
+}, (table) => ({
+  uniqueUserActivityDate: uniqueIndex("unique_user_activity_date").on(table.userId, table.date),
+}));
 
 export const userVocabulary = pgTable("user_vocabulary", {
   userId: text("user_id").notNull().references(() => users.id),
