@@ -92,3 +92,12 @@ Open [http://localhost:3000](http://localhost:3000).
 - Dexie.js (offline IndexedDB cache)
 - Web Speech API / edge-tts (audio)
 - PWA (manifest, service worker)
+
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Home](public/screenshots/home.png) | ![Module](public/screenshots/module.png) |
+| ![Experience](public/screenshots/experience.png) | ![Success](public/screenshots/success.png) |
+| ![Coming Soon](public/screenshots/coming-soon.png) | |
