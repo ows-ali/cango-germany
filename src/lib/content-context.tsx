@@ -58,7 +58,7 @@ export function ContentProvider({ children }: { children: ReactNode }) {
           saveCache(data);
         }
       } catch {
-        if (!cancelled) setLoaded(true);
+        if (!cancelled) setTimeout(init, 2000);
       }
     }
 
