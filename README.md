@@ -17,6 +17,18 @@ speech synthesis for authentic pronunciation practice.
 - **Prototyping:** Google Stitch
 - **Image Generation:** Nano Banana
 
+
+## Tech Stack
+
+- Next.js 16, TypeScript, Tailwind CSS v4
+- Drizzle ORM + Supabase Postgres
+- NextAuth.js v5 (Credentials provider)
+- Dexie.js (offline IndexedDB cache)
+- Vitest (unit/integration), Playwright (E2E)
+- Web Speech API / edge-tts (audio)
+- PWA (manifest, service worker)
+
+
 ## Features
 
 - Real-world scenarios: transportation, doctor visits, job interviews
@@ -78,21 +90,29 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+## Testing
+
+```bash
+# Unit & integration tests
+npm test
+
+# E2E tests (requires a test user — sign up at /auth first)
+npm run test:e2e
+
+# E2E tests with visible browser (headed mode)
+npm run test:e2e -- --headed
+
+# E2E interactive UI debugger
+npm run test:e2e -- --ui
+```
+
+> E2E tests use Playwright with Chromium. Update credentials in `e2e/auth.setup.ts` to match your test account.
+
 ## Auth
 
 - Sign up / Log in with email + password via `/auth`
 - Credentials are stored in Supabase `users` table with bcrypt-hashed passwords
 - Protected routes redirect to `/auth` if unauthenticated
-
-## Tech Stack
-
-- Next.js 16, TypeScript, Tailwind CSS v4
-- Drizzle ORM + Supabase Postgres
-- NextAuth.js v5 (Credentials provider)
-- Dexie.js (offline IndexedDB cache)
-- Web Speech API / edge-tts (audio)
-- PWA (manifest, service worker)
-
 
 ## Screenshots
 
