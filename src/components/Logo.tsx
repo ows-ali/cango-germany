@@ -9,6 +9,7 @@ export function Logo({ size = 32, className = "" }: { size?: number; className?:
       alt="CanGo"
       className={className}
       priority
+      unoptimized
     />
   );
 }
