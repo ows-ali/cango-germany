@@ -53,7 +53,21 @@ export async function GET() {
                         .select("*")
                         .eq("question_id", q.id);
                       if (optError) throw optError;
-                      return { ...q, options };
+                      return {
+                        id: q.id,
+                        experienceId: q.experience_id,
+                        type: q.type,
+                        questionText: q.question_text,
+                        englishTranslation: q.english_translation,
+                        order: q.order,
+                        options: (options ?? []).map((o) => ({
+                          id: o.id,
+                          questionId: o.question_id,
+                          germanText: o.german_text,
+                          englishText: o.english_text,
+                          correct: o.correct,
+                        })),
+                      };
                     })
                   );
 
@@ -65,11 +79,44 @@ export async function GET() {
                         .eq("challenge_id", ch.id)
                         .order("order");
                       if (itemError) throw itemError;
-                      return { ...ch, items };
+                      return {
+                        id: ch.id,
+                        experienceId: ch.experience_id,
+                        type: ch.type,
+                        question: ch.question,
+                        questionEnglish: ch.question_english,
+                        items: (items ?? []).map((i) => ({
+                          id: i.id,
+                          challengeId: i.challenge_id,
+                          text: i.text,
+                          translation: i.translation,
+                          order: i.order,
+                          correctValue: i.correct_value,
+                        })),
+                      };
                     })
                   );
 
-                  return { ...exp, transcripts: transcriptsResult.data, questions: questionsWithOptions, challenges: challengesWithItems };
+                  return {
+                    id: exp.id,
+                    moduleId: exp.module_id,
+                    title: exp.title,
+                    description: exp.description,
+                    audioUrl: exp.audio_url,
+                    imageUrl: exp.image_url,
+                    duration: exp.duration,
+                    xpReward: exp.xp_reward,
+                    order: exp.order,
+                    transcripts: transcriptsResult.data.map((t) => ({
+                      id: t.id,
+                      experienceId: t.experience_id,
+                      order: t.order,
+                      germanText: t.german_text,
+                      englishText: t.english_text,
+                    })),
+                    questions: questionsWithOptions,
+                    challenges: challengesWithItems,
+                  };
                 })
               );
 
@@ -81,7 +128,16 @@ export async function GET() {
         })
       );
 
-      return { ...scenario, levels: scenarioLevelData };
+      return {
+        id: scenario.id,
+        languageId: scenario.language_id,
+        name: scenario.name,
+        slug: scenario.slug,
+        description: scenario.description,
+        imageUrl: scenario.image_url,
+        order: scenario.order,
+        levels: scenarioLevelData,
+      };
     })
   );
 

@@ -27,9 +27,18 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (vocabLinksResult.error) throw vocabLinksResult.error;
 
   const wordIds = vocabLinksResult.data.map((vw) => vw.word_id);
-  const vocabWords = wordIds.length > 0
-    ? (await supabase.from("words").select("*").in("id", wordIds)).data ?? []
-    : [];
+  let vocabWords: any[] = [];
+  if (wordIds.length > 0) {
+    const { data, error } = await supabase.from("words").select("*").in("id", wordIds);
+    if (error) throw error;
+    vocabWords = (data ?? []).map((w) => ({
+      id: w.id,
+      germanWord: w.german_word,
+      englishTranslation: w.english_translation,
+      article: w.article,
+      plural: w.plural,
+    }));
+  }
 
   const questionsWithOptions = await Promise.all(
     questsResult.data.map(async (q) => {
@@ -38,7 +47,21 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         .select("*")
         .eq("question_id", q.id);
       if (optError) throw optError;
-      return { ...q, options };
+      return {
+        id: q.id,
+        experienceId: q.experience_id,
+        type: q.type,
+        questionText: q.question_text,
+        englishTranslation: q.english_translation,
+        order: q.order,
+        options: (options ?? []).map((o) => ({
+          id: o.id,
+          questionId: o.question_id,
+          germanText: o.german_text,
+          englishText: o.english_text,
+          correct: o.correct,
+        })),
+      };
     })
   );
 
@@ -50,13 +73,41 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         .eq("challenge_id", ch.id)
         .order("order");
       if (itemError) throw itemError;
-      return { ...ch, items };
+      return {
+        id: ch.id,
+        experienceId: ch.experience_id,
+        type: ch.type,
+        question: ch.question,
+        questionEnglish: ch.question_english,
+        items: (items ?? []).map((i) => ({
+          id: i.id,
+          challengeId: i.challenge_id,
+          text: i.text,
+          translation: i.translation,
+          order: i.order,
+          correctValue: i.correct_value,
+        })),
+      };
     })
   );
 
   return NextResponse.json({
-    ...exp,
-    transcripts: transcriptsResult.data,
+    id: exp.id,
+    moduleId: exp.module_id,
+    title: exp.title,
+    description: exp.description,
+    audioUrl: exp.audio_url,
+    imageUrl: exp.image_url,
+    duration: exp.duration,
+    xpReward: exp.xp_reward,
+    order: exp.order,
+    transcripts: transcriptsResult.data.map((t) => ({
+      id: t.id,
+      experienceId: t.experience_id,
+      order: t.order,
+      germanText: t.german_text,
+      englishText: t.english_text,
+    })),
     questions: questionsWithOptions,
     challenges: challengesWithItems,
     vocabulary: vocabWords,
