@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { userStats, userActivity } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 export async function GET() {
   const session = await auth();
@@ -12,30 +10,41 @@ export async function GET() {
 
   const uid = session.user.id;
 
-  let [stats] = await db
-    .select()
-    .from(userStats)
-    .where(eq(userStats.userId, uid))
-    .limit(1);
+  const { data: stats, error: statsError } = await supabase
+    .from("user_stats")
+    .select("*")
+    .eq("user_id", uid)
+    .maybeSingle();
+
+  if (statsError) throw statsError;
 
   if (!stats) {
-    [stats] = await db
-      .insert(userStats)
-      .values({ userId: uid })
-      .returning();
+    const { data: newStats, error: insertError } = await supabase
+      .from("user_stats")
+      .insert({ user_id: uid })
+      .select()
+      .maybeSingle();
+
+    if (insertError) throw insertError;
+    var finalStats = newStats;
+  } else {
+    var finalStats = stats;
   }
 
   const today = new Date().toISOString().slice(0, 10);
-  const [todayRow] = await db
-    .select({ xp: sql<number>`coalesce(sum(${userActivity.xpEarned}), 0)` })
-    .from(userActivity)
-    .where(and(eq(userActivity.userId, uid), eq(userActivity.date, today)))
-    .limit(1);
+  const { data: todayRow, error: activityError } = await supabase
+    .from("user_activity")
+    .select("xp_earned")
+    .eq("user_id", uid)
+    .eq("date", today)
+    .maybeSingle();
+
+  if (activityError) throw activityError;
 
   return NextResponse.json({
-    totalXp: stats.totalXp,
-    currentStreak: stats.currentStreak,
-    longestStreak: stats.longestStreak,
-    todayXp: todayRow?.xp ?? 0,
+    totalXp: finalStats.total_xp,
+    currentStreak: finalStats.current_streak,
+    longestStreak: finalStats.longest_streak,
+    todayXp: todayRow?.xp_earned ?? 0,
   });
 }

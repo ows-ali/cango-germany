@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { userExperienceProgress } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -15,18 +13,18 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing experienceId" }, { status: 400 });
   }
 
-  const [row] = await db
-    .select()
-    .from(userExperienceProgress)
-    .where(and(
-      eq(userExperienceProgress.userId, session.user.id),
-      eq(userExperienceProgress.experienceId, experienceId),
-    ))
-    .limit(1);
+  const { data: row, error } = await supabase
+    .from("user_experience_progress")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .eq("experience_id", experienceId)
+    .maybeSingle();
+
+  if (error) throw error;
 
   return NextResponse.json({
     completed: row?.completed ?? false,
-    lessonXpClaimed: row?.lessonXpClaimed ?? false,
-    bonusXpClaimed: row?.bonusXpClaimed ?? false,
+    lessonXpClaimed: row?.lesson_xp_claimed ?? false,
+    bonusXpClaimed: row?.bonus_xp_claimed ?? false,
   });
 }

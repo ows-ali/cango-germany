@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { userExperienceProgress, userStats, userActivity } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 const BONUS_XP = 20;
 
@@ -19,54 +17,63 @@ export async function POST(req: Request) {
 
   const uid = session.user.id;
 
-  const [existing] = await db
-    .select()
-    .from(userExperienceProgress)
-    .where(and(
-      eq(userExperienceProgress.userId, uid),
-      eq(userExperienceProgress.experienceId, experienceId),
-    ))
-    .limit(1);
+  const { data: existing } = await supabase
+    .from("user_experience_progress")
+    .select("*")
+    .eq("user_id", uid)
+    .eq("experience_id", experienceId)
+    .maybeSingle();
 
-  if (existing?.bonusXpClaimed) {
+  if (existing?.bonus_xp_claimed) {
     return NextResponse.json({ bonusXpAwarded: false });
   }
 
-  await db.transaction(async (tx) => {
-    await tx
-      .insert(userExperienceProgress)
-      .values({
-        userId: uid,
-        experienceId,
-        bonusXpClaimed: true,
-      })
-      .onConflictDoUpdate({
-        target: [userExperienceProgress.userId, userExperienceProgress.experienceId],
-        set: { bonusXpClaimed: true },
-      });
+  const { error: upsertError } = await supabase
+    .from("user_experience_progress")
+    .upsert(
+      { user_id: uid, experience_id: experienceId, bonus_xp_claimed: true },
+      { onConflict: "user_id, experience_id", ignoreDuplicates: false }
+    );
+  if (upsertError) throw upsertError;
 
-    await tx
-      .update(userStats)
-      .set({ totalXp: sql`${userStats.totalXp} + ${BONUS_XP}` })
-      .where(eq(userStats.userId, uid));
+  const { data: stats, error: statsError } = await supabase
+    .from("user_stats")
+    .select("*")
+    .eq("user_id", uid)
+    .maybeSingle();
+  if (statsError) throw statsError;
+
+  if (stats) {
+    const newTotalXp = (stats.total_xp ?? 0) + BONUS_XP;
+
+    const { error: updateError } = await supabase
+      .from("user_stats")
+      .update({ total_xp: newTotalXp })
+      .eq("user_id", uid);
+    if (updateError) throw updateError;
 
     const today = new Date().toISOString().slice(0, 10);
-    const [existingActivity] = await tx
-      .select()
-      .from(userActivity)
-      .where(and(eq(userActivity.userId, uid), eq(userActivity.date, today)))
-      .limit(1);
+    const { data: existingActivity } = await supabase
+      .from("user_activity")
+      .select("*")
+      .eq("user_id", uid)
+      .eq("date", today)
+      .maybeSingle();
+
     if (existingActivity) {
-      await tx
-        .update(userActivity)
-        .set({ xpEarned: sql`${userActivity.xpEarned} + ${BONUS_XP}` })
-        .where(and(eq(userActivity.userId, uid), eq(userActivity.date, today)));
+      const { error: actError } = await supabase
+        .from("user_activity")
+        .update({ xp_earned: (existingActivity.xp_earned ?? 0) + BONUS_XP })
+        .eq("user_id", uid)
+        .eq("date", today);
+      if (actError) throw actError;
     } else {
-      await tx
-        .insert(userActivity)
-        .values({ userId: uid, date: today, xpEarned: BONUS_XP });
+      const { error: actError } = await supabase
+        .from("user_activity")
+        .insert({ user_id: uid, date: today, xp_earned: BONUS_XP });
+      if (actError) throw actError;
     }
-  });
+  }
 
   return NextResponse.json({ bonusXpAwarded: true });
 }

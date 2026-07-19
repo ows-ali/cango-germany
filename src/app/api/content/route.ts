@@ -1,76 +1,75 @@
-import { db } from "@/lib/db";
-import { scenarios, levels, scenarioLevels, modules, experiences, transcriptLines, questions, questionOptions, challenges, challengeItems } from "@/lib/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 import { NextResponse } from "next/server";
 
 export async function GET() {
-  const allScenarios = await db.select().from(scenarios).orderBy(scenarios.order);
+  const { data: allScenarios, error: scenariosError } = await supabase
+    .from("scenarios")
+    .select("*")
+    .order("order");
+  if (scenariosError) throw scenariosError;
 
   const fullContent = await Promise.all(
     allScenarios.map(async (scenario) => {
-      const sLevels = await db
-        .select()
-        .from(scenarioLevels)
-        .where(eq(scenarioLevels.scenarioId, scenario.id))
-        .innerJoin(levels, eq(scenarioLevels.levelId, levels.id));
+      const { data: sLevels, error: slError } = await supabase
+        .from("scenario_levels")
+        .select("*, levels(*)")
+        .eq("scenario_id", scenario.id);
+      if (slError) throw slError;
 
       const scenarioLevelData = await Promise.all(
-        sLevels.map(async ({ scenario_levels: sl, levels: l }) => {
-          const mods = await db
-            .select()
-            .from(modules)
-            .where(eq(modules.scenarioLevelId, sl.id))
-            .orderBy(modules.order);
+        sLevels.map(async (sl) => {
+          const { data: mods, error: modError } = await supabase
+            .from("modules")
+            .select("*")
+            .eq("scenario_level_id", sl.id)
+            .order("order");
+          if (modError) throw modError;
 
           const moduleData = await Promise.all(
             mods.map(async (mod) => {
-              const exps = await db
-                .select()
-                .from(experiences)
-                .where(eq(experiences.moduleId, mod.id))
-                .orderBy(experiences.order);
+              const { data: exps, error: expError } = await supabase
+                .from("experiences")
+                .select("*")
+                .eq("module_id", mod.id)
+                .order("order");
+              if (expError) throw expError;
 
               const expData = await Promise.all(
                 exps.map(async (exp) => {
-                  const [transcripts, quests, chals] = await Promise.all([
-                    db
-                      .select()
-                      .from(transcriptLines)
-                      .where(eq(transcriptLines.experienceId, exp.id))
-                      .orderBy(transcriptLines.order),
-                    db
-                      .select()
-                      .from(questions)
-                      .where(eq(questions.experienceId, exp.id))
-                      .orderBy(questions.order),
-                    db
-                      .select()
-                      .from(challenges)
-                      .where(eq(challenges.experienceId, exp.id)),
+                  const [transcriptsResult, questsResult, chalsResult] = await Promise.all([
+                    supabase.from("transcript_lines").select("*").eq("experience_id", exp.id).order("order"),
+                    supabase.from("questions").select("*").eq("experience_id", exp.id).order("order"),
+                    supabase.from("challenges").select("*").eq("experience_id", exp.id),
                   ]);
 
+                  if (transcriptsResult.error) throw transcriptsResult.error;
+                  if (questsResult.error) throw questsResult.error;
+                  if (chalsResult.error) throw chalsResult.error;
+
                   const questionsWithOptions = await Promise.all(
-                    quests.map(async (q) => ({
-                      ...q,
-                      options: await db
-                        .select()
-                        .from(questionOptions)
-                        .where(eq(questionOptions.questionId, q.id)),
-                    }))
+                    questsResult.data.map(async (q) => {
+                      const { data: options, error: optError } = await supabase
+                        .from("question_options")
+                        .select("*")
+                        .eq("question_id", q.id);
+                      if (optError) throw optError;
+                      return { ...q, options };
+                    })
                   );
 
                   const challengesWithItems = await Promise.all(
-                    chals.map(async (ch) => ({
-                      ...ch,
-                      items: await db
-                        .select()
-                        .from(challengeItems)
-                        .where(eq(challengeItems.challengeId, ch.id))
-                        .orderBy(challengeItems.order),
-                    }))
+                    chalsResult.data.map(async (ch) => {
+                      const { data: items, error: itemError } = await supabase
+                        .from("challenge_items")
+                        .select("*")
+                        .eq("challenge_id", ch.id)
+                        .order("order");
+                      if (itemError) throw itemError;
+                      return { ...ch, items };
+                    })
                   );
 
-                  return { ...exp, transcripts, questions: questionsWithOptions, challenges: challengesWithItems };
+                  return { ...exp, transcripts: transcriptsResult.data, questions: questionsWithOptions, challenges: challengesWithItems };
                 })
               );
 
@@ -78,7 +77,7 @@ export async function GET() {
             })
           );
 
-          return { level: l, modules: moduleData };
+          return { level: sl.levels, modules: moduleData };
         })
       );
 

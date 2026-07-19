@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { userScenarioSettings } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -16,17 +14,17 @@ export async function GET(req: NextRequest) {
   const scenarioIds = ids.split(",").map(Number).filter((n) => !isNaN(n));
   if (scenarioIds.length === 0) return NextResponse.json({});
 
-  const rows = await db
-    .select()
-    .from(userScenarioSettings)
-    .where(and(
-      eq(userScenarioSettings.userId, session.user.id),
-      inArray(userScenarioSettings.scenarioId, scenarioIds),
-    ));
+  const { data: rows, error } = await supabase
+    .from("user_scenario_settings")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .in("scenario_id", scenarioIds);
+
+  if (error) throw error;
 
   const map: Record<number, { selectedLevelId: number | null }> = {};
   for (const row of rows) {
-    map[row.scenarioId] = { selectedLevelId: row.selectedLevelId };
+    map[row.scenario_id] = { selectedLevelId: row.selected_level_id };
   }
 
   return NextResponse.json(map);

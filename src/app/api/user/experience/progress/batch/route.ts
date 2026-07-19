@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { userExperienceProgress } from "@/lib/db/schema";
-import { eq, and, inArray } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -20,20 +18,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({}, { status: 200 });
   }
 
-  const rows = await db
-    .select()
-    .from(userExperienceProgress)
-    .where(and(
-      eq(userExperienceProgress.userId, session.user.id),
-      inArray(userExperienceProgress.experienceId, experienceIds),
-    ));
+  const { data: rows, error } = await supabase
+    .from("user_experience_progress")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .in("experience_id", experienceIds);
+
+  if (error) throw error;
 
   const map: Record<number, { completed: boolean; lessonXpClaimed: boolean; bonusXpClaimed: boolean }> = {};
   for (const row of rows) {
-    map[row.experienceId] = {
+    map[row.experience_id] = {
       completed: row.completed ?? false,
-      lessonXpClaimed: row.lessonXpClaimed ?? false,
-      bonusXpClaimed: row.bonusXpClaimed ?? false,
+      lessonXpClaimed: row.lesson_xp_claimed ?? false,
+      bonusXpClaimed: row.bonus_xp_claimed ?? false,
     };
   }
 

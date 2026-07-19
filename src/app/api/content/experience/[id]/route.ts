@@ -1,45 +1,62 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { experiences, transcriptLines, words, experienceWords, questions, questionOptions, challenges, challengeItems } from "@/lib/db/schema";
-import { eq, asc, inArray } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const expId = parseInt(id);
   if (isNaN(expId)) return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
 
-  const [exp] = await db.select().from(experiences).where(eq(experiences.id, expId));
+  const { data: exp, error: expError } = await supabase
+    .from("experiences")
+    .select("*")
+    .eq("id", expId)
+    .maybeSingle();
+  if (expError) throw expError;
   if (!exp) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const [transcripts, quests, chals, vocabLinks] = await Promise.all([
-    db.select().from(transcriptLines).where(eq(transcriptLines.experienceId, expId)).orderBy(transcriptLines.order),
-    db.select().from(questions).where(eq(questions.experienceId, expId)).orderBy(questions.order),
-    db.select().from(challenges).where(eq(challenges.experienceId, expId)),
-    db.select().from(experienceWords).where(eq(experienceWords.experienceId, expId)),
+  const [transcriptsResult, questsResult, chalsResult, vocabLinksResult] = await Promise.all([
+    supabase.from("transcript_lines").select("*").eq("experience_id", expId).order("order"),
+    supabase.from("questions").select("*").eq("experience_id", expId).order("order"),
+    supabase.from("challenges").select("*").eq("experience_id", expId),
+    supabase.from("experience_words").select("*").eq("experience_id", expId),
   ]);
 
-  const wordIds = vocabLinks.map((vw) => vw.wordId);
+  if (transcriptsResult.error) throw transcriptsResult.error;
+  if (questsResult.error) throw questsResult.error;
+  if (chalsResult.error) throw chalsResult.error;
+  if (vocabLinksResult.error) throw vocabLinksResult.error;
+
+  const wordIds = vocabLinksResult.data.map((vw) => vw.word_id);
   const vocabWords = wordIds.length > 0
-    ? await db.select().from(words).where(inArray(words.id, wordIds))
+    ? (await supabase.from("words").select("*").in("id", wordIds)).data ?? []
     : [];
 
   const questionsWithOptions = await Promise.all(
-    quests.map(async (q) => ({
-      ...q,
-      options: await db.select().from(questionOptions).where(eq(questionOptions.questionId, q.id)),
-    }))
+    questsResult.data.map(async (q) => {
+      const { data: options, error: optError } = await supabase
+        .from("question_options")
+        .select("*")
+        .eq("question_id", q.id);
+      if (optError) throw optError;
+      return { ...q, options };
+    })
   );
 
   const challengesWithItems = await Promise.all(
-    chals.map(async (ch) => ({
-      ...ch,
-      items: await db.select().from(challengeItems).where(eq(challengeItems.challengeId, ch.id)).orderBy(challengeItems.order),
-    }))
+    chalsResult.data.map(async (ch) => {
+      const { data: items, error: itemError } = await supabase
+        .from("challenge_items")
+        .select("*")
+        .eq("challenge_id", ch.id)
+        .order("order");
+      if (itemError) throw itemError;
+      return { ...ch, items };
+    })
   );
 
   return NextResponse.json({
     ...exp,
-    transcripts,
+    transcripts: transcriptsResult.data,
     questions: questionsWithOptions,
     challenges: challengesWithItems,
     vocabulary: vocabWords,

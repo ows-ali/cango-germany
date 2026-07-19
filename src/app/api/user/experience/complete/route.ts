@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { userExperienceProgress, userStats, userActivity, experiences } from "@/lib/db/schema";
-import { eq, and, sql } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 export async function POST(req: Request) {
   const session = await auth();
@@ -17,89 +15,90 @@ export async function POST(req: Request) {
 
   const uid = session.user.id;
 
-  const [existing] = await db
-    .select()
-    .from(userExperienceProgress)
-    .where(and(
-      eq(userExperienceProgress.userId, uid),
-      eq(userExperienceProgress.experienceId, experienceId),
-    ))
-    .limit(1);
+  const { data: existing } = await supabase
+    .from("user_experience_progress")
+    .select("*")
+    .eq("user_id", uid)
+    .eq("experience_id", experienceId)
+    .maybeSingle();
 
-  if (existing?.lessonXpClaimed) {
-    return NextResponse.json({ lessonXpAwarded: false, bonusXpClaimed: existing.bonusXpClaimed });
+  if (existing?.lesson_xp_claimed) {
+    return NextResponse.json({ lessonXpAwarded: false, bonusXpClaimed: existing.bonus_xp_claimed });
   }
 
-  const [exp] = await db
-    .select({ xpReward: experiences.xpReward })
-    .from(experiences)
-    .where(eq(experiences.id, experienceId))
-    .limit(1);
+  const { data: exp, error: expError } = await supabase
+    .from("experiences")
+    .select("xp_reward")
+    .eq("id", experienceId)
+    .maybeSingle();
+  if (expError) throw expError;
 
-  const xpReward = exp?.xpReward ?? 50;
+  const xpReward = exp?.xp_reward ?? 50;
 
-  await db.transaction(async (tx) => {
-    await tx
-      .insert(userExperienceProgress)
-      .values({
-        userId: uid,
-        experienceId,
+  const { error: upsertError } = await supabase
+    .from("user_experience_progress")
+    .upsert(
+      {
+        user_id: uid,
+        experience_id: experienceId,
         completed: true,
-        completedAt: new Date(),
-        lessonXpClaimed: true,
-      })
-      .onConflictDoUpdate({
-        target: [userExperienceProgress.userId, userExperienceProgress.experienceId],
-        set: { completed: true, completedAt: new Date(), lessonXpClaimed: true },
-      });
+        completed_at: new Date().toISOString(),
+        lesson_xp_claimed: true,
+      },
+      { onConflict: "user_id, experience_id", ignoreDuplicates: false }
+    );
+  if (upsertError) throw upsertError;
 
-    await tx
-      .update(userStats)
-      .set({ totalXp: sql`${userStats.totalXp} + ${xpReward}` })
-      .where(eq(userStats.userId, uid));
+  const { data: stats, error: statsError } = await supabase
+    .from("user_stats")
+    .select("*")
+    .eq("user_id", uid)
+    .maybeSingle();
+  if (statsError) throw statsError;
+
+  if (stats) {
+    const newTotalXp = (stats.total_xp ?? 0) + xpReward;
 
     const today = new Date().toISOString().slice(0, 10);
-    const [existingActivity] = await tx
-      .select()
-      .from(userActivity)
-      .where(and(eq(userActivity.userId, uid), eq(userActivity.date, today)))
-      .limit(1);
-    if (existingActivity) {
-      await tx
-        .update(userActivity)
-        .set({ xpEarned: sql`${userActivity.xpEarned} + ${xpReward}` })
-        .where(and(eq(userActivity.userId, uid), eq(userActivity.date, today)));
+    const prevDate = stats.last_activity_date;
+    let newStreak = stats.current_streak ?? 0;
+    if (prevDate) {
+      const prev = new Date(prevDate);
+      const diff = Math.floor((new Date(today).getTime() - prev.getTime()) / 86400000);
+      if (diff === 1) newStreak += 1;
+      else if (diff > 1) newStreak = 1;
     } else {
-      await tx
-        .insert(userActivity)
-        .values({ userId: uid, date: today, xpEarned: xpReward });
+      newStreak = 1;
     }
+    const longest = Math.max(stats.longest_streak ?? 0, newStreak);
 
-    const [stats] = await tx
-      .select()
-      .from(userStats)
-      .where(eq(userStats.userId, uid))
-      .limit(1);
+    const { error: updateError } = await supabase
+      .from("user_stats")
+      .update({ total_xp: newTotalXp, current_streak: newStreak, longest_streak: longest, last_activity_date: today })
+      .eq("user_id", uid);
+    if (updateError) throw updateError;
 
-    if (stats) {
-      const prevDate = stats.lastActivityDate;
-      const todayDate = today;
-      let newStreak = stats.currentStreak;
-      if (prevDate) {
-        const prev = new Date(prevDate);
-        const diff = Math.floor((new Date(todayDate).getTime() - prev.getTime()) / 86400000);
-        if (diff === 1) newStreak += 1;
-        else if (diff > 1) newStreak = 1;
-      } else {
-        newStreak = 1;
-      }
-      const longest = Math.max(stats.longestStreak, newStreak);
-      await tx
-        .update(userStats)
-        .set({ currentStreak: newStreak, longestStreak: longest, lastActivityDate: todayDate })
-        .where(eq(userStats.userId, uid));
+    const { data: existingActivity } = await supabase
+      .from("user_activity")
+      .select("*")
+      .eq("user_id", uid)
+      .eq("date", today)
+      .maybeSingle();
+
+    if (existingActivity) {
+      const { error: actError } = await supabase
+        .from("user_activity")
+        .update({ xp_earned: (existingActivity.xp_earned ?? 0) + xpReward })
+        .eq("user_id", uid)
+        .eq("date", today);
+      if (actError) throw actError;
+    } else {
+      const { error: actError } = await supabase
+        .from("user_activity")
+        .insert({ user_id: uid, date: today, xp_earned: xpReward });
+      if (actError) throw actError;
     }
-  });
+  }
 
-  return NextResponse.json({ lessonXpAwarded: true, bonusXpClaimed: existing?.bonusXpClaimed ?? false });
+  return NextResponse.json({ lessonXpAwarded: true, bonusXpClaimed: existing?.bonus_xp_claimed ?? false });
 }

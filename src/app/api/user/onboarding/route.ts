@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 export async function PATCH(req: Request) {
   const session = await auth();
@@ -12,14 +10,12 @@ export async function PATCH(req: Request) {
 
   const { goals, cefrLevel } = await req.json();
 
-  await db
-    .update(users)
-    .set({
-      goals,
-      cefrLevel,
-      onboardingComplete: true,
-    })
-    .where(eq(users.id, session.user.id));
+  const { error } = await supabase
+    .from("users")
+    .update({ goals, cefr_level: cefrLevel, onboarding_complete: true })
+    .eq("id", session.user.id);
+
+  if (error) throw error;
 
   return NextResponse.json({ ok: true });
 }

@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
-import { users } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { supabase } from "@/lib/db-supabase";
 
 export async function GET() {
   const session = await auth();
@@ -10,15 +8,21 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [user] = await db
-    .select({ name: users.name, email: users.email, cefrLevel: users.cefrLevel, goals: users.goals })
-    .from(users)
-    .where(eq(users.id, session.user.id))
-    .limit(1);
+  const { data: user, error } = await supabase
+    .from("users")
+    .select("name, email, cefr_level, goals")
+    .eq("id", session.user.id)
+    .maybeSingle();
 
+  if (error) throw error;
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
 
-  return NextResponse.json(user);
+  return NextResponse.json({
+    name: user.name,
+    email: user.email,
+    cefrLevel: user.cefr_level,
+    goals: user.goals,
+  });
 }
